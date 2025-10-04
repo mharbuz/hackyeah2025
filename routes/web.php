@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PensionFactController;
+use App\Http\Controllers\PensionSimulationController;
 use App\Http\Controllers\TestController;
 
 Route::get('/', function () {
@@ -14,6 +15,10 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/api/pension-fact/random', [PensionFactController::class, 'random'])->name('pension-fact.random');
+
+// Symulacja przyszłej emerytury
+Route::get('/symulacja-emerytury', [PensionSimulationController::class, 'index'])->name('pension-simulation.index');
+Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simulate'])->name('pension-simulation.simulate');
 
 // Test routes
 Route::prefix('test')->group(function () {
