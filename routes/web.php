@@ -46,6 +46,12 @@ Route::get('/api/pension-fact/random', [PensionFactController::class, 'random'])
 // Pension simulation routes
 Route::post('/api/pension-simulation', [PensionSimulationController::class, 'store'])->name('pension.simulation.store');
 Route::get('/', [PensionSimulationController::class, 'show'])->name('home');
+
+// Strona ZUS
+Route::get('/zus', function () {
+    return Inertia::render('ZusHomePage');
+})->name('zus.home');
+
 // Symulacja przyszłej emerytury
 Route::get('/symulacja-emerytury', [PensionSimulationController::class, 'index'])->name('pension-simulation.index');
 Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simulate'])->name('pension-simulation.simulate');
