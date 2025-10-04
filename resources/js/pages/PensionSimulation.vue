@@ -30,6 +30,7 @@ interface ValidationErrors {
 
 interface SimulationResult {
     monthly_pension: number;
+    monthly_pension_without_sick_leave: number;
     total_contributions: number;
     years_to_retirement: number;
     sick_leave_impact?: {
@@ -51,7 +52,15 @@ interface SimulationResult {
             pension_real: number;
         }>;
         variant_name: string;
+        average_pension_in_retirement_year: number;
+        pension_to_average_ratio: number;
     };
+    delayed_retirement_options: Array<{
+        delay_years: number;
+        retirement_year: number;
+        monthly_pension: number;
+        total_capital: number;
+    }>;
 }
 
 // Stan formularza
@@ -758,49 +767,124 @@ const resetForm = () => {
                     </Card>
                 </div>
 
-                <!-- Kontekst ekonomiczny -->
-                <div v-if="simulationResult.economic_context" class="grid md:grid-cols-2 gap-6">
-                    <!-- Współczynnik zastąpienia -->
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-[rgb(63,132,210)]/10 to-white backdrop-blur-sm">
-                        <CardHeader class="pb-3">
-                            <CardTitle class="text-[rgb(0,65,110)] text-base flex items-center gap-2">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(63,132,210)]/80 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <!-- Kluczowe wskaźniki ekonomiczne -->
+                <div v-if="simulationResult.economic_context" class="space-y-6">
+                    <!-- Tytuł sekcji -->
+                    <div class="text-center">
+                        <h3 class="text-2xl md:text-3xl font-bold text-[rgb(0,65,110)] mb-2">
+                            Kluczowe wskaźniki Twojej emerytury
+                        </h3>
+                        <p class="text-gray-600">
+                            Porównanie Twojego świadczenia z prognozami ekonomicznymi
+                        </p>
+                    </div>
+
+                    <!-- Współczynnik zastąpienia - duża karta -->
+                    <Card class="shadow-2xl border-none bg-gradient-to-br from-[rgb(63,132,210)]/10 via-white to-[rgb(0,153,63)]/5 backdrop-blur-sm overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[rgb(63,132,210)]/10 to-transparent rounded-full -mr-32 -mt-32"></div>
+                        <CardContent class="p-8 md:p-10 relative">
+                            <div class="flex flex-col md:flex-row items-center gap-6">
+                                <div class="w-20 h-20 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                     </svg>
                                 </div>
-                                <span>Współczynnik zastąpienia</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-3xl font-bold text-[rgb(63,132,210)] mb-2">
-                                {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
+                                <div class="flex-1 text-center md:text-left">
+                                    <h4 class="text-lg font-semibold text-[rgb(0,65,110)] mb-2">
+                                        Stopa zastąpienia
+                                    </h4>
+                                    <div class="flex items-baseline gap-3 justify-center md:justify-start">
+                                        <span class="text-5xl md:text-6xl font-bold text-[rgb(63,132,210)]">
+                                            {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
+                                        </span>
+                                        <span class="text-lg text-gray-600">Twojego wynagrodzenia</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-3 leading-relaxed">
+                                        Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong> 
+                                        ostatniego wynagrodzenia przed przejściem na emeryturę 
+                                        ({{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}).
+                                    </p>
+                                </div>
                             </div>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                Stosunek emerytury do ostatniego wynagrodzenia
-                            </p>
                         </CardContent>
                     </Card>
 
-                    <!-- Inflacja skumulowana -->
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white backdrop-blur-sm">
-                        <CardHeader class="pb-3">
-                            <CardTitle class="text-[rgb(0,65,110)] text-base flex items-center gap-2">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(240,94,94)]/80 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <!-- Porównanie ze średnią emeryturą -->
+                    <Card class="shadow-2xl border-none bg-gradient-to-br from-[rgb(0,153,63)]/10 via-white to-[rgb(255,179,79)]/5 backdrop-blur-sm overflow-hidden">
+                        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-[rgb(0,153,63)]/10 to-transparent rounded-full -ml-32 -mb-32"></div>
+                        <CardContent class="p-8 md:p-10 relative">
+                            <div class="flex flex-col md:flex-row items-center gap-6">
+                                <div class="w-20 h-20 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                        <path d="M13 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 text-center md:text-left">
+                                    <h4 class="text-lg font-semibold text-[rgb(0,65,110)] mb-2">
+                                        Porównanie ze średnią krajową
+                                    </h4>
+                                    <div class="flex items-baseline gap-3 justify-center md:justify-start mb-3">
+                                        <span class="text-5xl md:text-6xl font-bold text-[rgb(0,153,63)]">
+                                            {{ simulationResult.economic_context.pension_to_average_ratio.toFixed(0) }}%
+                                        </span>
+                                        <span class="text-lg text-gray-600">średniej emerytury</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mt-4">
+                                        <div class="bg-white/70 rounded-xl p-4 border border-[rgb(190,195,206)]/30">
+                                            <p class="text-xs text-gray-600 mb-1">Twoja emerytura</p>
+                                            <p class="text-xl font-bold text-[rgb(0,65,110)]">
+                                                {{ formatCurrency(simulationResult.monthly_pension) }}
+                                            </p>
+                                        </div>
+                                        <div class="bg-white/70 rounded-xl p-4 border border-[rgb(190,195,206)]/30">
+                                            <p class="text-xs text-gray-600 mb-1">Średnia w {{ formData.retirement_year }}</p>
+                                            <p class="text-xl font-bold text-[rgb(0,153,63)]">
+                                                {{ formatCurrency(simulationResult.economic_context.average_pension_in_retirement_year) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-3 leading-relaxed">
+                                        <template v-if="simulationResult.economic_context.pension_to_average_ratio > 100">
+                                            Twoja prognozowana emerytura będzie <strong>wyższa</strong> o 
+                                            <strong>{{ (simulationResult.economic_context.pension_to_average_ratio - 100).toFixed(0) }}%</strong> 
+                                            od prognozowanej średniej emerytury w Polsce w {{ formData.retirement_year }} roku.
+                                        </template>
+                                        <template v-else-if="simulationResult.economic_context.pension_to_average_ratio < 100">
+                                            Twoja prognozowana emerytura będzie <strong>niższa</strong> o 
+                                            <strong>{{ (100 - simulationResult.economic_context.pension_to_average_ratio).toFixed(0) }}%</strong> 
+                                            od prognozowanej średniej emerytury w Polsce w {{ formData.retirement_year }} roku.
+                                        </template>
+                                        <template v-else>
+                                            Twoja prognozowana emerytura będzie na poziomie średniej emerytury w Polsce w {{ formData.retirement_year }} roku.
+                                        </template>
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Inflacja - mniejsza karta -->
+                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white backdrop-blur-sm">
+                        <CardContent class="p-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(240,94,94)]/80 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <span>Inflacja skumulowana</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-3xl font-bold text-[rgb(240,94,94)] mb-2">
-                                {{ simulationResult.economic_context.cumulative_inflation.toFixed(1) }}%
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-[rgb(0,65,110)] mb-1">
+                                        Inflacja skumulowana do roku emerytury
+                                    </h4>
+                                    <div class="flex items-baseline gap-2">
+                                        <span class="text-3xl font-bold text-[rgb(240,94,94)]">
+                                            {{ simulationResult.economic_context.cumulative_inflation.toFixed(1) }}%
+                                        </span>
+                                        <span class="text-sm text-gray-600">w okresie {{ simulationResult.years_to_retirement }} lat</span>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                Łączna inflacja do roku emerytury
-                            </p>
                         </CardContent>
                     </Card>
                 </div>
@@ -847,44 +931,16 @@ const resetForm = () => {
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">Prognoza ZUS do {{ formData.retirement_year }}</p>
                             </div>
-
-                            <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30">
-                                <div class="flex items-center justify-between mb-3">
-                                    <p class="text-sm text-gray-600 font-medium">Twoje wynagrodzenie w {{ formData.retirement_year }}</p>
-                                    <svg class="w-5 h-5 text-[rgb(255,179,79)]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="text-2xl font-bold text-[rgb(255,179,79)]">
-                                    {{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}
-                                </div>
-                                <p class="text-xs text-gray-500 mt-2">Prognoza z uwzględnieniem wzrostu płac</p>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-[rgb(0,153,63)]/10 to-[rgb(63,132,210)]/10 p-5 rounded-xl border-2 border-[rgb(0,153,63)]/30">
-                                <div class="flex items-center justify-between mb-3">
-                                    <p class="text-sm text-gray-700 font-bold">Twoja emerytura to</p>
-                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="text-2xl font-bold text-[rgb(0,153,63)] mb-1">
-                                    {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
-                                </div>
-                                <p class="text-xs text-gray-600">ostatniego wynagrodzenia przed emeryturą</p>
-                            </div>
                         </div>
 
-                        <div class="mt-6 bg-gradient-to-r from-[rgb(0,153,63)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(0,153,63)]">
+                        <div class="mt-6 bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(63,132,210)]">
                             <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-6 h-6 text-[rgb(63,132,210)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    <strong>Współczynnik zastąpienia</strong> pokazuje, jaki procent Twojego ostatniego wynagrodzenia będzie stanowić emerytura. 
-                                    Im wyższy współczynnik, tym lepiej utrzymasz dotychczasowy standard życia na emeryturze. 
-                                    Według standardów międzynarodowych, współczynnik powyżej 40% uważany jest za zadowalający.
+                                    Prognozy bazują na oficjalnych danych ZUS ({{ simulationResult.economic_context.variant_name }}), 
+                                    uwzględniających realistyczne scenariusze rozwoju gospodarczego Polski do roku {{ formData.retirement_year }}.
                                 </p>
                             </div>
                         </div>
@@ -900,37 +956,143 @@ const resetForm = () => {
                                     <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <span>Wpływ zwolnień lekarskich</span>
+                            <span>Wpływ zwolnień lekarskich na emeryturę</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="p-6">
+                        <!-- Porównanie z/bez zwolnień -->
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30">
-                                <p class="text-sm text-gray-600 mb-2 font-medium">Średnia liczba dni na zwolnieniu</p>
-                                <div class="text-3xl font-bold text-[rgb(0,65,110)]">
-                                    {{ simulationResult.sick_leave_impact.average_days }} dni
+                            <div class="bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white p-5 rounded-xl border-2 border-[rgb(0,153,63)]/30">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600 font-bold">Bez uwzględnienia zwolnień</p>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2">W całej karierze zawodowej</p>
+                                <div class="text-3xl font-bold text-[rgb(0,153,63)] mb-2">
+                                    {{ formatCurrency(simulationResult.monthly_pension_without_sick_leave) }}
+                                </div>
+                                <p class="text-xs text-gray-600">Przy idealnej frekwencji</p>
                             </div>
-                            <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(240,94,94)]/30">
-                                <p class="text-sm text-gray-600 mb-2 font-medium">Szacowane obniżenie świadczenia</p>
-                                <div class="text-3xl font-bold text-[rgb(240,94,94)]">
-                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }}
+                            
+                            <div class="bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white p-5 rounded-xl border-2 border-[rgb(240,94,94)]/30">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-[rgb(240,94,94)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600 font-bold">Z uwzględnieniem zwolnień</p>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2">
-                                    {{ simulationResult.sick_leave_impact.percentage_reduction.toFixed(2) }}% miesięcznej emerytury
+                                <div class="text-3xl font-bold text-[rgb(240,94,94)] mb-2">
+                                    {{ formatCurrency(simulationResult.monthly_pension) }}
+                                </div>
+                                <p class="text-xs text-gray-600">
+                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }} 
+                                    ({{ simulationResult.sick_leave_impact.percentage_reduction.toFixed(2) }}%)
                                 </p>
                             </div>
                         </div>
+
+                        <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 mb-6">
+                            <div class="flex items-center gap-3 mb-3">
+                                <svg class="w-6 h-6 text-[rgb(0,65,110)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-gray-700 font-bold">Statystyka zwolnień lekarskich</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs text-gray-600 mb-1">Łączna liczba dni</p>
+                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">{{ simulationResult.sick_leave_impact.average_days }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-600 mb-1">W całej karierze zawodowej</p>
+                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">
+                                        {{ (simulationResult.sick_leave_impact.average_days / (simulationResult.years_to_retirement + (formData.age ? parseInt(formData.age) - 25 : 0))).toFixed(0) }} dni/rok
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(255,179,79)]">
                             <div class="flex items-start gap-3">
                                 <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    <strong>Informacja:</strong> Średnio pracujący w Polsce {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} 
-                                    przebywa przez całą karierę na zwolnieniu lekarskim przez około {{ simulationResult.sick_leave_impact.average_days }} dni. 
-                                    Podczas zwolnienia składki emerytalne są odprowadzane w niższej wysokości, co ma bezpośredni wpływ na ostateczną wysokość świadczenia.
+                                    <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
+                                    (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce 
+                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni, 
+                                    co realnie wpływa na wysokość przyszłej emerytury.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Opcje odroczenia emerytury -->
+                <Card class="shadow-xl border-2 border-[rgb(63,132,210)] bg-gradient-to-br from-white to-[rgb(63,132,210)]/5 backdrop-blur-sm">
+                    <CardHeader class="bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent">
+                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <span>Co zyskasz odkładając emeryturę?</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-6">
+                        <p class="text-gray-700 mb-6 leading-relaxed">
+                            Sprawdź, o ile wzrośnie Twoja emerytura, jeśli zdecydujesz się pracować dłużej po osiągnięciu wieku emerytalnego.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div v-for="option in simulationResult.delayed_retirement_options" :key="option.delay_years"
+                                class="bg-gradient-to-r from-white to-[rgb(63,132,210)]/5 p-5 rounded-xl border-2 border-[rgb(63,132,210)]/30 hover:border-[rgb(63,132,210)] transition-all duration-300 hover:shadow-lg">
+                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                                                +{{ option.delay_years }}
+                                            </div>
+                                            <div>
+                                                <p class="text-lg font-bold text-[rgb(0,65,110)]">
+                                                    Odroczenie o {{ option.delay_years }} {{ option.delay_years === 1 ? 'rok' : 'lata' }}
+                                                </p>
+                                                <p class="text-sm text-gray-600">Przejście na emeryturę w {{ option.retirement_year }} roku</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                                        <div class="text-center md:text-right">
+                                            <p class="text-xs text-gray-600 mb-1">Miesięczna emerytura</p>
+                                            <p class="text-2xl md:text-3xl font-bold text-[rgb(63,132,210)]">
+                                                {{ formatCurrency(option.monthly_pension) }}
+                                            </p>
+                                        </div>
+                                        <div class="bg-[rgb(0,153,63)]/10 px-4 py-2 rounded-lg">
+                                            <p class="text-xs text-gray-600 mb-1">Zysk</p>
+                                            <p class="text-xl font-bold text-[rgb(0,153,63)]">
+                                                +{{ formatCurrency(option.monthly_pension - simulationResult.monthly_pension) }}
+                                            </p>
+                                            <p class="text-xs text-[rgb(0,153,63)] font-semibold">
+                                                +{{ ((option.monthly_pension / simulationResult.monthly_pension - 1) * 100).toFixed(1) }}%
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(63,132,210)]">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-[rgb(63,132,210)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-gray-700 leading-relaxed">
+                                    <strong>Dlaczego warto odroczyć emeryturę?</strong> Pracując dłużej zwiększasz zgromadzony kapitał emerytalny 
+                                    (dodatkowe składki) oraz skracasz statystyczny okres pobierania emerytury, co przekłada się na wyższe miesięczne świadczenie. 
+                                    Dodatkowo emerytury rosną wraz ze wzrostem wynagrodzeń w gospodarce.
                                 </p>
                             </div>
                         </div>
@@ -1012,6 +1174,15 @@ const resetForm = () => {
                         </svg>
                         Wykonaj nową symulację
                     </Button>
+                    <a
+                        href="/dashboard-prognozowania"
+                        class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white hover:from-[rgb(63,132,210)]/90 hover:to-[rgb(0,65,110)]/90 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"
+                    >
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Zaawansowany Dashboard
+                    </a>
                     <Link
                         :href="home()"
                         class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"

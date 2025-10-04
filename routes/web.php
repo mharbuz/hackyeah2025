@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\AdvancedPensionForecastController;
 use App\Http\Controllers\PensionFactController;
 use App\Http\Controllers\PensionSimulationController;
 use App\Http\Controllers\TestController;
@@ -22,6 +23,11 @@ Route::get('/session/{uuid}', [PensionSimulationController::class, 'show'])->nam
 // Symulacja przyszłej emerytury
 Route::get('/symulacja-emerytury', [PensionSimulationController::class, 'index'])->name('pension-simulation.index');
 Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simulate'])->name('pension-simulation.simulate');
+
+// Zaawansowany dashboard prognozowania
+Route::get('/dashboard-prognozowania', [AdvancedPensionForecastController::class, 'index'])->name('pension-forecast-dashboard.index');
+Route::post('/api/pension/advanced-simulate', [AdvancedPensionForecastController::class, 'simulate'])->name('pension-forecast-dashboard.simulate');
+Route::post('/api/pension/generate-pdf-report', [AdvancedPensionForecastController::class, 'generatePdfReport'])->name('pension-forecast-dashboard.generate-pdf');
 
 // Test routes
 Route::prefix('test')->group(function () {

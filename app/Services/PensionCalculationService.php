@@ -82,12 +82,24 @@ class PensionCalculationService
             $forecastVariant
         );
 
+        // Zaktualizuj salda po dodaniu przyszłych składek
+        // Przyszłe składki są dzielone między konto główne (62.59%) i subkonto (37.41%)
+        $accountContributionRate = (float) config('pension.calculation.account_contribution_rate', 0.1222);
+        $contributionRate = (float) config('pension.calculation.contribution_rate', 0.1952);
+        $accountShare = $accountContributionRate / $contributionRate; // ~0.6259
+        
+        $finalAccountBalance = $accountBalance + ($futureContributions * $accountShare);
+        $finalSubaccountBalance = $subaccountBalance + ($futureContributions * (1 - $accountShare));
+
         // Łączny kapitał emerytalny
-        $totalCapital = $accountBalance + $subaccountBalance + $futureContributions;
+        $totalCapital = $finalAccountBalance + $finalSubaccountBalance;
 
         // Oblicz miesięczną emeryturę
         $lifeExpectancyMonths = $this->getLifeExpectancyMonths($gender);
         $monthlyPension = $totalCapital / $lifeExpectancyMonths;
+        
+        // Zachowaj emeryturę bez wpływu zwolnień lekarskich
+        $monthlyPensionWithoutSickLeave = $monthlyPension;
 
         // Wpływ zwolnień lekarskich
         $sickLeaveImpact = null;
@@ -109,13 +121,28 @@ class PensionCalculationService
             $forecastVariant
         );
 
+        // Oblicz prognozy odroczenia emerytury (o 1, 2 i 5 lat)
+        $delayedRetirementOptions = $this->calculateDelayedRetirementOptions(
+            $age,
+            $gender,
+            $grossSalary,
+            $accountBalance,
+            $subaccountBalance,
+            $retirementYear,
+            $forecastVariant
+        );
+
         return [
             'monthly_pension' => round($monthlyPension, 2),
+            'monthly_pension_without_sick_leave' => round($monthlyPensionWithoutSickLeave, 2),
+            'account_balance' => round($finalAccountBalance, 2),
+            'subaccount_balance' => round($finalSubaccountBalance, 2),
             'total_contributions' => round($totalCapital, 2),
             'years_to_retirement' => $yearsToRetirement,
             'sick_leave_impact' => $sickLeaveImpact,
             'forecast_variant' => $forecastVariant,
             'economic_context' => $economicContext,
+            'delayed_retirement_options' => $delayedRetirementOptions,
         ];
     }
 
@@ -466,6 +493,20 @@ class PensionCalculationService
             $variant
         );
 
+        // 8. Oblicz prognozowane średnie świadczenie emerytalne w roku emerytury
+        $averagePensionInRetirementYear = $this->calculateAveragePensionInYear(
+            $retirementYear,
+            $currentYear,
+            $realWage,
+            $cpiForPensioners,
+            $variant
+        );
+
+        // 9. Porównanie z prognozowanym średnim świadczeniem (ile razy więcej/mniej)
+        $pensionToAverageRatio = $averagePensionInRetirementYear > 0 
+            ? ($monthlyPension / $averagePensionInRetirementYear) * 100 
+            : 0;
+
         return [
             'future_gross_salary' => round($futureGrossSalary, 2),
             'replacement_rate' => round($replacementRate, 2),
@@ -475,6 +516,8 @@ class PensionCalculationService
             'cumulative_inflation' => round($cumulativeInflation, 2),
             'pension_forecast_10years' => $pensionForecast,
             'variant_name' => $this->getVariantName($variant),
+            'average_pension_in_retirement_year' => round($averagePensionInRetirementYear, 2),
+            'pension_to_average_ratio' => round($pensionToAverageRatio, 2),
         ];
     }
 
@@ -678,6 +721,59 @@ class PensionCalculationService
     }
 
     /**
+     * Oblicza prognozowane średnie świadczenie emerytalne w danym roku
+     * 
+     * Bazuje na założeniu, że średnia emerytura stanowi około 55-60% średniego wynagrodzenia
+     * w gospodarce (typowy współczynnik zastąpienia w systemie emerytalnym).
+     * Aktualna średnia emerytura w Polsce (2025) to około 3500 zł brutto.
+     *
+     * @param int $targetYear Rok, dla którego obliczamy średnią emeryturę
+     * @param int $currentYear Obecny rok
+     * @param array $wageData Dane o wzroście wynagrodzeń
+     * @param array $cpiData Dane o inflacji dla emerytów
+     * @param string $variant Wariant prognozy
+     * @return float Prognozowane średnie świadczenie emerytalne
+     */
+    private function calculateAveragePensionInYear(
+        int $targetYear,
+        int $currentYear,
+        array $wageData,
+        array $cpiData,
+        string $variant
+    ): float {
+        // Bieżąca średnia emerytura w Polsce (2025) - około 3500 zł brutto
+        $currentAveragePension = 3500.0;
+        
+        if ($targetYear <= $currentYear) {
+            return $currentAveragePension;
+        }
+
+        // Prognozy emerytury rosną wraz z waloryzacją, która jest powiązana z CPI dla emerytów
+        // oraz wzrostem wynagrodzeń (w Polsce to średnia ze wzrostu CPI i płac)
+        $averagePension = $currentAveragePension;
+        $wageVariantData = $wageData['series'][$variant]['data'] ?? [];
+        $cpiVariantData = $cpiData['series'][$variant]['data'] ?? [];
+
+        for ($year = $currentYear + 1; $year <= $targetYear; $year++) {
+            // Wzrost wynagrodzeń
+            $wageGrowthIndex = $this->getGrowthIndexForYear($year, $wageVariantData);
+            $wageGrowthRate = ($wageGrowthIndex - 100) / 100;
+            
+            // Inflacja dla emerytów
+            $cpiIndex = $this->getGrowthIndexForYear($year, $cpiVariantData);
+            $inflationRate = ($cpiIndex - 100) / 100;
+            
+            // Waloryzacja emerytur to średnia arytmetyczna wzrostu cen i płac (tzw. wskaźnik waloryzacji)
+            // zgodnie z polskim systemem emerytalnym (art. 89 ustawy emerytalnej)
+            $valorizationRate = ($wageGrowthRate * 0.2 + $inflationRate * 0.8);
+            
+            $averagePension *= (1 + $valorizationRate);
+        }
+
+        return $averagePension;
+    }
+
+    /**
      * Zwraca nazwę wariantu prognozy
      *
      * @param string $variant Identyfikator wariantu
@@ -687,6 +783,66 @@ class PensionCalculationService
     {
         $variants = config('pension.forecast_variants', []);
         return $variants[$variant]['name'] ?? $variant;
+    }
+
+    /**
+     * Oblicza opcje odroczenia emerytury o 1, 2 i 5 lat
+     * 
+     * Pokazuje, jak zwiększy się emerytura, jeśli użytkownik odłoży
+     * decyzję o przejściu na emeryturę.
+     *
+     * @param int $age Obecny wiek
+     * @param string $gender Płeć
+     * @param float $grossSalary Wynagrodzenie brutto
+     * @param float $accountBalance Saldo konta
+     * @param float $subaccountBalance Saldo subkonta
+     * @param int $plannedRetirementYear Planowany rok emerytury
+     * @param string $variant Wariant prognozy
+     * @return array Opcje odroczenia (1, 2, 5 lat)
+     */
+    private function calculateDelayedRetirementOptions(
+        int $age,
+        string $gender,
+        float $grossSalary,
+        float $accountBalance,
+        float $subaccountBalance,
+        int $plannedRetirementYear,
+        string $variant
+    ): array {
+        $options = [];
+        $delayYears = [1, 2, 5];
+        $retirementAge = $this->getRetirementAge($gender);
+        
+        foreach ($delayYears as $delay) {
+            $delayedAge = $age + ($retirementAge - $age) + $delay;
+            $delayedRetirementYear = $plannedRetirementYear + $delay;
+            $additionalYears = ($retirementAge - $age) + $delay;
+            
+            // Oblicz dodatkowe składki za okres odroczenia
+            $additionalContributions = $this->calculateFutureContributions(
+                $grossSalary,
+                $additionalYears,
+                $variant
+            );
+            
+            // Łączny kapitał z odroczeniem
+            $totalCapitalWithDelay = $accountBalance + $subaccountBalance + $additionalContributions;
+            
+            // Oczekiwana długość życia zmniejsza się z każdym rokiem odroczenia
+            $lifeExpectancyMonths = $this->getLifeExpectancyMonths($gender) - ($delay * 12);
+            
+            // Miesięczna emerytura z odroczeniem
+            $monthlyPensionWithDelay = $totalCapitalWithDelay / max($lifeExpectancyMonths, 12);
+            
+            $options[] = [
+                'delay_years' => $delay,
+                'retirement_year' => $delayedRetirementYear,
+                'monthly_pension' => round($monthlyPensionWithDelay, 2),
+                'total_capital' => round($totalCapitalWithDelay, 2),
+            ];
+        }
+        
+        return $options;
     }
 
     /**
