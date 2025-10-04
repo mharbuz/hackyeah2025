@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     libsqlite3-dev \
     libonig-dev \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Instaluj Node.js 22.x
@@ -40,13 +41,31 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Ustaw katalog roboczy
 WORKDIR /var/www/html
 
-# Kopiuj pliki aplikacji
+# Kopiuj pliki konfiguracyjne npm i vite
+COPY package*.json ./
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+
+# Instaluj zależności npm
+RUN npm ci --only=production=false
+
+# Kopiuj resztę plików aplikacji
 COPY . .
 
+# Utwórz użytkownika z UID 1000 (zazwyczaj pierwszy użytkownik w systemie)
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g appuser -m -s /bin/bash appuser && \
+    usermod -aG sudo appuser && \
+    echo 'appuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
 # Ustaw uprawnienia
-RUN chown -R www-data:www-data /var/www/html \
+RUN chown -R appuser:appuser /var/www/html \
     && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/database
+
+# Przełącz na użytkownika appuser
+USER appuser
 
 # Eksponuj porty
 EXPOSE 8000 5173

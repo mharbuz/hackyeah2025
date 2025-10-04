@@ -1,8 +1,36 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+
+interface Props {
+    sharedSession?: {
+        uuid: string;
+        pension_value: number;
+        created_at: string;
+    };
+    sharedPensionData?: {
+        pension_groups: Array<{
+            name: string;
+            amount: number;
+            percentage: number;
+            color: string;
+            description: string;
+        }>;
+        user_group: {
+            name: string;
+            amount: number;
+            percentage: number;
+            color: string;
+            description: string;
+        };
+        average_pension: number;
+        percentage_difference: number;
+    };
+}
+
+const props = defineProps<Props>();
 
 // Dane o grupach emerytalnych
 const pensionGroups = [
@@ -50,21 +78,61 @@ const hoveredGroup = ref<number | null>(null);
 const currentFunFact = ref('');
 const showResults = ref(false);
 const isLoadingFact = ref(false);
+const sessionUuid = ref<string | null>(null);
+const shareUrl = ref<string | null>(null);
+const isCreatingSession = ref(false);
+
+// Sprawdź czy to udostępniona sesja
+const isSharedSession = computed(() => !!props.sharedSession);
+
+// Inicjalizacja dla udostępnionej sesji
+onMounted(() => {
+    if (isSharedSession.value && props.sharedSession && props.sharedPensionData) {
+        desiredPension.value = props.sharedSession.pension_value;
+        showResults.value = true;
+        sessionUuid.value = props.sharedSession.uuid;
+        // Dla udostępnionej sesji nie pokazujemy formularza wprowadzania
+    }
+});
 
 // Średnia krajowa
-const averagePension = 3500;
+const averagePension = computed(() => {
+    return props.sharedPensionData?.average_pension || 3500;
+});
 
 // Oblicz procentową różnicę
 const percentageDifference = computed(() => {
+    if (props.sharedPensionData) {
+        return props.sharedPensionData.percentage_difference.toFixed(1);
+    }
     if (!desiredPension.value) return 0;
-    return ((desiredPension.value - averagePension) / averagePension * 100).toFixed(1);
+    return ((desiredPension.value - averagePension.value) / averagePension.value * 100).toFixed(1);
 });
 
 // Znajdź grupę użytkownika
 const userGroup = computed(() => {
+    if (props.sharedPensionData) {
+        return props.sharedPensionData.user_group;
+    }
     if (!desiredPension.value) return null;
     return pensionGroups.find(group => desiredPension.value! <= group.amount) || pensionGroups[pensionGroups.length - 1];
 });
+
+// Użyj grup z props lub domyślnych
+const currentPensionGroups = computed(() => {
+    return props.sharedPensionData?.pension_groups || pensionGroups;
+});
+
+// Formatowanie daty dla udostępnionej sesji
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pl-PL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
 
 // Formatowanie waluty
 const formatCurrency = (amount: number) => {
@@ -94,10 +162,44 @@ const fetchRandomFact = async () => {
 const handleSubmit = async () => {
     const value = parseFloat(inputValue.value);
     if (value && value > 0) {
+        isCreatingSession.value = true;
+        
+        try {
+            // Utwórz sesję w bazie danych
+            const response = await axios.post('/api/pension-simulation', {
+                pension_value: value
+            });
+            
+            if (response.data.success) {
+                sessionUuid.value = response.data.session_uuid;
+                shareUrl.value = response.data.share_url;
+                
+                // Zaktualizuj URL w przeglądarce
+                window.history.pushState({}, '', shareUrl.value);
+            }
+        } catch (error) {
+            console.error('Błąd podczas tworzenia sesji:', error);
+        } finally {
+            isCreatingSession.value = false;
+        }
+        
         desiredPension.value = value;
         showResults.value = true;
         // Pobierz nową ciekawostkę przy każdym sprawdzeniu
         await fetchRandomFact();
+    }
+};
+
+// Funkcja do kopiowania linku
+const copyShareLink = async () => {
+    if (shareUrl.value) {
+        try {
+            await navigator.clipboard.writeText(shareUrl.value);
+            // Można dodać toast notification tutaj
+            alert('Link został skopiowany do schowka!');
+        } catch (error) {
+            console.error('Błąd podczas kopiowania linku:', error);
+        }
     }
 };
 </script>
@@ -149,8 +251,25 @@ const handleSubmit = async () => {
         <main
             class="w-full max-w-7xl mx-auto"
         >
-            <!-- Sekcja wprowadzania danych -->
+            <!-- Informacja o udostępnionej sesji -->
+            <div v-if="isSharedSession" class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">Udostępniona sesja symulacji</h2>
+                        <p class="text-white/80">
+                            Utworzona: {{ formatDate(sharedSession!.created_at) }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-white/60">ID sesji:</p>
+                        <p class="font-mono text-sm">{{ sharedSession!.uuid }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sekcja wprowadzania danych (tylko dla głównego symulatora) -->
             <div
+                v-if="!isSharedSession"
                 class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 mb-8"
             >
                 <div class="max-w-3xl mx-auto text-center">
@@ -176,9 +295,17 @@ const handleSubmit = async () => {
                         </div>
                         <button
                             type="submit"
-                            class="px-8 py-4 bg-[rgb(0,153,63)] text-white text-xl font-semibold rounded-xl hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
+                            :disabled="isCreatingSession"
+                            class="px-8 py-4 bg-[rgb(0,153,63)] text-white text-xl font-semibold rounded-xl hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
-                            Sprawdź
+                            <span v-if="isCreatingSession" class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Tworzenie sesji...
+                            </span>
+                            <span v-else>Sprawdź</span>
                         </button>
                     </form>
 
@@ -251,7 +378,7 @@ const handleSubmit = async () => {
 
                     <div class="space-y-4 mb-8">
                         <div
-                            v-for="(group, index) in pensionGroups"
+                            v-for="(group, index) in currentPensionGroups"
                             :key="index"
                             @mouseenter="hoveredGroup = index"
                             @mouseleave="hoveredGroup = null"
@@ -297,7 +424,7 @@ const handleSubmit = async () => {
                     <!-- Legenda -->
                     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 pt-6 border-t-2 border-gray-100">
                         <div
-                            v-for="(group, index) in pensionGroups"
+                            v-for="(group, index) in currentPensionGroups"
                             :key="'legend-' + index"
                             class="flex items-center gap-2"
                         >
@@ -326,23 +453,63 @@ const handleSubmit = async () => {
                     </div>
                 </div>
 
+                <!-- Udostępnianie sesji (tylko dla głównego symulatora) -->
+                <div v-if="shareUrl && !isSharedSession" class="bg-gradient-to-r from-[rgb(0,153,63)] to-[rgb(63,132,210)] rounded-2xl shadow-2xl p-8 lg:p-12 text-center text-white mb-8">
+                    <h3 class="text-2xl lg:text-3xl font-bold mb-4">
+                        🎉 Twoja sesja została utworzona!
+                    </h3>
+                    <p class="text-lg mb-6 opacity-90">
+                        Udostępnij wyniki swojej symulacji z innymi osobami
+                    </p>
+                    <div class="bg-white/20 rounded-xl p-4 mb-6">
+                        <p class="text-sm opacity-80 mb-2">Link do udostępnienia:</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <input 
+                                :value="shareUrl" 
+                                readonly 
+                                class="flex-1 bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+                            />
+                            <button
+                                @click="copyShareLink"
+                                class="bg-white/20 hover:bg-white/30 border border-white/30 rounded-lg px-4 py-2 transition-colors"
+                                title="Kopiuj link"
+                            >
+                                📋
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm opacity-80">
+                        Link będzie aktywny przez 30 dni
+                    </p>
+                </div>
+
                 <!-- Podsumowanie i CTA -->
                 <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 text-center">
-                    <h3 class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
+                    <h3 v-if="!isSharedSession" class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
                         Chcesz osiągnąć swoją docelową emeryturę?
                     </h3>
-                    <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                    <h3 v-else class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
+                        Chcesz sprawdzić swoją emeryturę?
+                    </h3>
+                    
+                    <p v-if="!isSharedSession" class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
                         Zarejestruj się w naszym systemie, aby uzyskać spersonalizowane wskazówki dotyczące oszczędzania i planowania emerytury.
                     </p>
+                    <p v-else class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                        Użyj naszego symulatora, aby sprawdzić, jaką emeryturę możesz otrzymać w przyszłości.
+                    </p>
+                    
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             :href="register()"
                             class="inline-block rounded-xl bg-[rgb(0,153,63)] px-8 py-4 text-xl font-semibold text-white hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl"
                         >
-                            Zacznij planować swoją przyszłość
+                            <span v-if="!isSharedSession">Zacznij planować swoją przyszłość</span>
+                            <span v-else>Sprawdź swoją emeryturę</span>
                         </Link>
                         <button
-                            @click="showResults = false; desiredPension = null; inputValue = ''"
+                            v-if="!isSharedSession"
+                            @click="showResults = false; desiredPension = null; inputValue = ''; sessionUuid = null; shareUrl = null"
                             class="inline-block rounded-xl border-2 border-[rgb(0,65,110)] px-8 py-4 text-xl font-semibold text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white transition-colors"
                         >
                             Sprawdź inną kwotę

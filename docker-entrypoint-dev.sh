@@ -4,6 +4,13 @@ set -e
 echo '🔧 Konfiguracja Git safe.directory...'
 git config --global --add safe.directory /var/www/html
 
+# Ustawienie uprawnień dla katalogów
+echo '🔐 Ustawianie uprawnień...'
+sudo chown -R $(id -u):$(id -g) /var/www/html
+sudo chmod -R 755 /var/www/html/storage
+sudo chmod -R 755 /var/www/html/bootstrap/cache
+sudo chmod -R 755 /var/www/html/database
+
 # Tworzenie .env jeśli nie istnieje
 if [ ! -f .env ]; then
     echo '📝 Tworzenie pliku .env...'
@@ -76,7 +83,8 @@ php artisan key:generate --force
 echo '🗄️ Tworzenie bazy danych...'
 mkdir -p database
 touch database/database.sqlite
-chmod 775 database/database.sqlite
+sudo chown $(id -u):$(id -g) database/database.sqlite
+chmod 664 database/database.sqlite
 
 # Migracje
 echo '📊 Uruchamianie migracji...'
