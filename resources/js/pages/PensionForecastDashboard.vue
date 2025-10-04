@@ -663,7 +663,7 @@ onMounted(() => {
                         Wprowadź dokładne dane historyczne i przyszłościowe dla najprecyzyjniejszej prognozy emerytury
                     </p>
                     <!-- Expected Pension Display -->
-                    <div v-if="expectedPension" class="mt-6 inline-block bg-white border-2 rounded-xl px-8 py-4 shadow-sm" style="border-color: rgb(0, 153, 63);">
+                    <div v-if="expectedPension" class="mt-6 inline-block bg-white border-2 rounded-lg px-8 py-4 shadow-sm" style="border-color: rgb(0, 153, 63);">
                         <p class="text-sm font-semibold mb-1" style="color: rgb(0, 65, 110);">Twoja oczekiwana emerytura:</p>
                         <p class="text-4xl font-bold" style="color: rgb(0, 153, 63);">
                             {{ expectedPension.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} zł
@@ -730,12 +730,12 @@ onMounted(() => {
                                             type="button"
                                             @click="formData.gender = 'male'"
                                             :class="[
-                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                'flex-1 h-14 rounded-lg border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
                                                 formData.gender === 'male'
                                                     ? 'text-white border-transparent shadow-lg'
                                                     : 'border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
                                             ]"
-                                            :style="formData.gender === 'male' ? 'background-color: rgb(63, 132, 210);' : 'background-color: white;'"
+                                            :style="formData.gender === 'male' ? 'background-color: rgb(63, 132, 210); color: white;' : 'background-color: white; color: rgb(0, 65, 110);'"
                                         >
                                             Mężczyzna
                                         </button>
@@ -743,12 +743,12 @@ onMounted(() => {
                                             type="button"
                                             @click="formData.gender = 'female'"
                                             :class="[
-                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                'flex-1 h-14 rounded-lg border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
                                                 formData.gender === 'female'
                                                     ? 'text-white border-transparent shadow-lg'
                                                     : 'border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
                                             ]"
-                                            :style="formData.gender === 'female' ? 'background-color: rgb(63, 132, 210);' : 'background-color: white;'"
+                                            :style="formData.gender === 'female' ? 'background-color: rgb(63, 132, 210); color: white;' : 'background-color: white; color: rgb(0, 65, 110);'"
                                         >
                                             Kobieta
                                         </button>
@@ -911,7 +911,7 @@ onMounted(() => {
                             </div>
 
                             <!-- Przełącznik: Historia vs Przyszłość -->
-                            <div class="flex gap-3 bg-gray-100 p-2 rounded-xl">
+                            <div class="flex gap-3 bg-gray-100 p-2 rounded-lg">
                                 <button
                                     type="button"
                                     @click="activeDataView = 'history'"
@@ -980,7 +980,7 @@ onMounted(() => {
                                 </div>
                                 </div>
 
-                                <div v-if="historicalData.length === 0" class="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                                <div v-if="historicalData.length === 0" class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                                     <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -1011,7 +1011,7 @@ onMounted(() => {
                                     <div
                                         v-for="(item, index) in historicalData"
                                         :key="index"
-                                        class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center bg-white p-4 rounded-xl border-2"
+                                        class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center bg-white p-4 rounded-lg border-2"
                                         style="border-color: rgb(190, 195, 206);"
                                     >
                                         <div class="font-bold text-lg w-20" style="color: rgb(0, 65, 110);">
@@ -1073,7 +1073,7 @@ onMounted(() => {
                                     </Button>
                                 </div>
 
-                                <div v-if="futureData.length === 0" class="text-center py-12 bg-gray-50 rounded-xl">
+                                <div v-if="futureData.length === 0" class="text-center py-12 bg-gray-50 rounded-lg">
                                     <p class="text-gray-500">
                                         Wprowadź wiek i rok emerytury, aby zainicjalizować prognozy
                                     </p>
@@ -1097,7 +1097,7 @@ onMounted(() => {
                                     <div
                                         v-for="(item, index) in futureData"
                                         :key="index"
-                                        class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center p-4 rounded-xl border-2"
+                                        class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center p-4 rounded-lg border-2"
                                         style="border-color: rgb(0, 153, 63, 0.3);"
                                     >
                                         <div class="font-bold text-lg w-20" style="color: rgb(0, 153, 63);">
@@ -1196,7 +1196,7 @@ onMounted(() => {
                     </div>
 
                     <!-- Informacja o czasie do emerytury -->
-                    <div class="flex items-center justify-center gap-3 text-lg md:text-xl text-gray-700 bg-gray-50 rounded-xl py-4 px-6">
+                    <div class="flex items-center justify-center gap-3 text-lg md:text-xl text-gray-700 bg-gray-50 rounded-lg py-4 px-6">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                         </svg>
@@ -1206,7 +1206,7 @@ onMounted(() => {
                     </div>
 
                     <!-- Wyjaśnienie różnicy -->
-                    <div v-if="simulationResult.economic_context" class="mt-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
+                    <div v-if="simulationResult.economic_context" class="mt-6 border-l-4 p-6" style="background-color: rgba(255, 179, 79, 0.1); border-color: rgb(255, 179, 79);">
                         <div class="flex items-start gap-3">
                             <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(255, 179, 79);">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
@@ -1273,7 +1273,7 @@ onMounted(() => {
                     <!-- Współczynnik zastąpienia - duża karta -->
                     <div class="bg-white border border-gray-200 shadow-sm p-8 md:p-10">
                         <div class="flex flex-col md:flex-row items-center gap-6">
-                            <div class="w-20 h-20 flex items-center justify-center rounded-2xl shadow-xl flex-shrink-0" style="background-color: rgb(63, 132, 210);">
+                            <div class="w-20 h-20 flex items-center justify-center rounded-lg shadow-xl flex-shrink-0" style="background-color: rgb(63, 132, 210);">
                                 <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
@@ -1300,7 +1300,7 @@ onMounted(() => {
                     <!-- Porównanie ze średnią emeryturą -->
                     <div class="bg-white border border-gray-200 shadow-sm p-8 md:p-10">
                             <div class="flex flex-col md:flex-row items-center gap-6">
-                                <div class="w-20 h-20 flex items-center justify-center rounded-2xl shadow-xl flex-shrink-0" style="background-color: rgb(0, 153, 63);">
+                                <div class="w-20 h-20 flex items-center justify-center rounded-lg shadow-xl flex-shrink-0" style="background-color: rgb(0, 153, 63);">
                                     <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                                         <path d="M13 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1z" />
@@ -1317,13 +1317,13 @@ onMounted(() => {
                                         <span class="text-lg text-gray-600">średniej emerytury</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mt-4">
-                                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                             <p class="text-xs text-gray-600 mb-1">Twoja emerytura</p>
                                             <p class="text-xl font-bold" style="color: rgb(0, 65, 110);">
                                                 {{ formatCurrency(simulationResult.monthly_pension) }}
                                             </p>
                                         </div>
-                                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                             <p class="text-xs text-gray-600 mb-1">Średnia w {{ formData.retirement_year }}</p>
                                             <p class="text-xl font-bold" style="color: rgb(0, 153, 63);">
                                                 {{ formatCurrency(simulationResult.economic_context.average_pension_in_retirement_year) }}
@@ -1361,7 +1361,7 @@ onMounted(() => {
                 <div v-if="simulationResult.economic_context" class="bg-white border border-gray-200 shadow-sm">
                     <div class="p-6 border-b border-gray-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background-color: rgb(0, 153, 63);">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg" style="background-color: rgb(0, 153, 63);">
                                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
@@ -1374,7 +1374,7 @@ onMounted(() => {
                     </div>
                     <div class="p-6">
                         <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-sm text-gray-600 font-medium">Średni wzrost PKB (rocznie)</p>
                                     <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
@@ -1387,7 +1387,7 @@ onMounted(() => {
                                 <p class="text-xs text-gray-500 mt-2">W okresie do emerytury</p>
                             </div>
 
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-sm text-gray-600 font-medium">Średnia stopa bezrobocia</p>
                                     <svg class="w-5 h-5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
@@ -1401,7 +1401,7 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <div class="mt-6 bg-gray-50 p-5 rounded-xl border-l-4" style="border-left-color: rgb(63, 132, 210);">
+                        <div class="mt-6 border-l-4 p-5" style="background-color: rgba(63, 132, 210, 0.1); border-color: rgb(63, 132, 210);">
                             <div class="flex items-start gap-3">
                                 <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
@@ -1419,7 +1419,7 @@ onMounted(() => {
                 <div class="bg-white border border-gray-200 shadow-sm">
                     <div class="p-6 border-b border-gray-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background-color: rgb(255, 179, 79);">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg" style="background-color: rgb(255, 179, 79);">
                                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                                 </svg>
@@ -1430,7 +1430,7 @@ onMounted(() => {
                     <div class="p-6">
                         <!-- Porównanie z/bez zwolnień -->
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center gap-2 mb-3">
                                     <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -1443,7 +1443,7 @@ onMounted(() => {
                                 <p class="text-xs text-gray-600">Przy idealnej frekwencji</p>
                             </div>
                             
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center gap-2 mb-3">
                                     <svg class="w-5 h-5" style="color: rgb(240, 94, 94);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
@@ -1460,7 +1460,7 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 mb-6">
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
                             <div class="flex items-center gap-3 mb-3">
                                 <svg class="w-6 h-6" style="color: rgb(0, 65, 110);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
@@ -1481,7 +1481,7 @@ onMounted(() => {
                             </div>
                         </div>
                         
-                        <div class="bg-gray-50 p-5 rounded-xl border-l-4" style="border-left-color: rgb(255, 179, 79);">
+                        <div class="border-l-4 p-5" style="background-color: rgba(255, 179, 79, 0.1); border-color: rgb(255, 179, 79);">
                             <div class="flex items-start gap-3">
                                 <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
@@ -1502,7 +1502,7 @@ onMounted(() => {
                 <div v-if="simulationResult.account_growth_forecast && simulationResult.account_growth_forecast.length > 0" class="bg-white border border-gray-200 shadow-sm">
                     <div class="p-6 border-b border-gray-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(63, 132, 210);">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-lg" style="background-color: rgb(63, 132, 210);">
                                 <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
@@ -1522,7 +1522,7 @@ onMounted(() => {
                                 </svg>
                                 Wykres wzrostu kapitału w czasie
                             </h4>
-                            <div class="bg-gray-50 p-8 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-8 rounded-lg border border-gray-200">
                                 <!-- Obszar wykresu -->
                                 <div class="relative" style="height: 500px;">
                                     <!-- Linie siatki poziomej i wartości -->
@@ -1661,7 +1661,7 @@ onMounted(() => {
                                 </svg>
                                 Szczegółowa tabela wzrostu
                             </h4>
-                            <div class="overflow-x-auto rounded-xl border-2 border-gray-200">
+                            <div class="overflow-x-auto rounded-lg border-2 border-gray-200">
                                 <table class="w-full">
                                     <thead class="text-white" style="background-color: rgb(63, 132, 210);">
                                         <tr>
@@ -1723,7 +1723,7 @@ onMounted(() => {
 
                         <!-- Kluczowe statystyki -->
                         <div class="grid md:grid-cols-3 gap-4 mt-6">
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
@@ -1735,7 +1735,7 @@ onMounted(() => {
                                 </p>
                             </div>
 
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-5 h-5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
@@ -1748,7 +1748,7 @@ onMounted(() => {
                                 </p>
                             </div>
 
-                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
                                     <svg class="w-5 h-5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7z" clip-rule="evenodd" />
@@ -1767,7 +1767,7 @@ onMounted(() => {
                 <div class="bg-white border border-gray-200 shadow-sm">
                     <div class="p-6 border-b border-gray-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(255, 179, 79);">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-lg" style="background-color: rgb(255, 179, 79);">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
@@ -1781,7 +1781,7 @@ onMounted(() => {
                     <div class="p-8">
                         <div class="space-y-6">
                             <!-- Informacja o zawartości raportu -->
-                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                                 <h4 class="text-lg font-bold mb-4" style="color: rgb(0, 65, 110);">📄 Raport będzie zawierał:</h4>
                                 <div class="grid md:grid-cols-2 gap-4">
                                     <div class="flex items-start gap-3">
@@ -1845,85 +1845,23 @@ onMounted(() => {
                             <button
                                 @click="generatePDF"
                                 :disabled="isGeneratingPDF"
-                                class="w-full h-20 text-xl font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
+                                class="w-full px-8 py-4 text-lg lg:text-xl font-semibold text-white transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                 style="background-color: rgb(255, 179, 79);"
                             >
-                                <svg v-if="isGeneratingPDF" class="animate-spin -ml-1 mr-3 h-7 w-7 text-white" fill="none" viewBox="0 0 24 24">
+                                <svg v-if="isGeneratingPDF" class="animate-spin -ml-1 mr-3 h-6 w-6 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <svg v-else class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg v-else class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                {{ isGeneratingPDF ? 'Generuję raport PDF...' : '📄 Pobierz szczegółowy raport PDF' }}
+                                <span v-if="isGeneratingPDF">Generuję raport PDF...</span>
+                                <span v-else>Pobierz szczegółowy raport PDF</span>
                             </button>
 
                             <p class="text-center text-sm text-gray-600">
                                 Raport zostanie wygenerowany w formacie PDF i automatycznie pobrany na Twoje urządzenie
                             </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Udostępnianie symulacji -->
-                <div class="bg-white border border-gray-200 shadow-sm">
-                    <div class="p-6 border-b border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(0, 153, 63);">
-                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="text-2xl font-bold" style="color: rgb(0, 65, 110);">Udostępnij symulację</div>
-                                <div class="text-sm font-normal text-gray-600 mt-1">Wyślij link do swojej prognozy emerytalnej</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <div class="space-y-6">
-                            <!-- Link do udostępnienia -->
-                            <div v-if="sessionUuid" class="space-y-4">
-                                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: rgb(0, 153, 63);">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                        </svg>
-                                        <span class="font-semibold" style="color: rgb(0, 65, 110);">Link do udostępnienia:</span>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <input 
-                                            :value="getShareUrl()" 
-                                            readonly 
-                                            class="flex-1 p-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:outline-none"
-                                            style="border-color: rgb(0, 153, 63);"
-                                        />
-                                        <Button
-                                            @click="copyShareLink"
-                                            class="px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
-                                            style="background-color: rgb(0, 153, 63);"
-                                        >
-                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                            Kopiuj
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <p class="text-center text-sm text-gray-600">
-                                    Link będzie działał przez 30 dni. Odbiorcy będą mogli zobaczyć Twoją prognozę emerytalną.
-                                </p>
-                            </div>
-
-                            <!-- Brak sesji -->
-                            <div v-else class="text-center py-8">
-                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                </svg>
-                                <p class="text-gray-600 mb-2">Aby udostępnić symulację, najpierw wykonaj prognozę</p>
-                                <p class="text-sm text-gray-500">Wypełnij formularz powyżej i kliknij "Zaprognozuj szczegółową emeryturę"</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1939,6 +1877,17 @@ onMounted(() => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                         Nowa prognoza
+                    </Button>
+                    <Button
+                        v-if="sessionUuid"
+                        @click="copyShareLink"
+                        class="flex-1 h-14 text-lg font-semibold text-white transition-all duration-300 shadow-lg"
+                        style="background-color: rgb(0, 153, 63);"
+                    >
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                        </svg>
+                        Udostępnij symulację
                     </Button>
                     <Link
                         :href="home()"
@@ -1957,7 +1906,7 @@ onMounted(() => {
         <!-- Footer -->
         <footer class="mt-16 pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 text-center">
                     <p class="text-gray-600 text-sm">
                         © 2025 Zakład Ubezpieczeń Społecznych
                     </p>
