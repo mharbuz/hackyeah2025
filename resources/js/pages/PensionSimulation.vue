@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, watch, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Props
 interface Props {
     sessionUuid?: string;
+    expectedPension?: number; // Expected pension from session
     existingFormData?: {
         age: number;
         gender: 'male' | 'female';
@@ -25,6 +27,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Toast notifications
+const toast = useToast();
 
 // Typy
 interface FormData {
@@ -79,6 +84,31 @@ interface SimulationResult {
         monthly_pension: number;
         total_capital: number;
     }>;
+    expected_pension_comparison?: {
+        expected_pension: number;
+        predicted_pension: number;
+        difference: number;
+        percentage_difference: number;
+        exceeds_expectations: boolean;
+        solutions?: {
+            extend_work_period: {
+                additional_years: number;
+                new_retirement_year: number;
+                new_monthly_pension: number;
+            };
+            higher_salary: {
+                required_salary: number;
+                salary_increase: number;
+                percentage_increase: number;
+            };
+            investment_savings: {
+                monthly_savings: number;
+                percentage_of_salary: number;
+                investment_return_rate: number;
+                total_investment_needed: number;
+            };
+        };
+    };
 }
 
 // Stan formularza
@@ -274,6 +304,11 @@ const handleSubmit = async () => {
             requestBody.session_uuid = props.sessionUuid;
         }
 
+        // Include expected pension from session if present
+        if (props.expectedPension) {
+            requestBody.expected_pension = props.expectedPension;
+        }
+
         const response = await fetch('/api/pension/simulate', {
             method: 'POST',
             headers: {
@@ -304,7 +339,7 @@ const handleSubmit = async () => {
         
     } catch (error) {
         console.error('Błąd symulacji:', error);
-        alert('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
     } finally {
         isSubmitting.value = false;
     }
@@ -325,6 +360,14 @@ const resetForm = () => {
     showResults.value = false;
     simulationResult.value = null;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Generate URL for advanced dashboard with session parameter
+const getAdvancedDashboardUrl = () => {
+    if (props.sessionUuid) {
+        return `/dashboard-prognozowania?session=${props.sessionUuid}`;
+    }
+    return '/dashboard-prognozowania';
 };
 </script>
 
@@ -766,6 +809,245 @@ const resetForm = () => {
                         </div>
                     </CardContent>
                 </Card>
+
+                <!-- Porównanie z oczekiwaną emeryturą -->
+                <div v-if="simulationResult.expected_pension_comparison" class="space-y-6">
+                    <!-- Case 2: BIG GREEN - Exceeds expectations -->
+                    <Card v-if="simulationResult.expected_pension_comparison.exceeds_expectations" 
+                          class="shadow-2xl border-none overflow-hidden bg-gradient-to-br from-[rgb(0,153,63)] via-[rgb(0,153,63)]/90 to-[rgb(0,153,63)]/80 text-white relative">
+                        <div class="absolute inset-0 bg-grid-white/10"></div>
+                        <CardContent class="relative p-8 md:p-12 text-center">
+                            <div class="flex justify-center mb-6">
+                                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg">
+                                🎉 Gratulacje!
+                            </h3>
+                            
+                            <div class="text-2xl md:text-3xl font-bold mb-6 drop-shadow-lg">
+                                Twoje obecne perspektywy przewyższają oczekiwania!
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-white/30">
+                                    <div class="text-lg font-semibold mb-2">Oczekiwana emerytura</div>
+                                    <div class="text-3xl font-bold">
+                                        {{ formatCurrency(simulationResult.expected_pension_comparison.expected_pension) }}
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-white/30">
+                                    <div class="text-lg font-semibold mb-2">Prognozowana emerytura</div>
+                                    <div class="text-3xl font-bold">
+                                        {{ formatCurrency(simulationResult.expected_pension_comparison.predicted_pension) }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/20 backdrop-blur-sm rounded-xl p-6 border border-white/30">
+                                <div class="text-lg font-semibold mb-2">Różnica</div>
+                                <div class="text-2xl font-bold text-[rgb(255,255,255)]">
+                                    +{{ formatCurrency(simulationResult.expected_pension_comparison.difference) }}
+                                </div>
+                                <div class="text-sm opacity-90 mt-2">
+                                    ({{ simulationResult.expected_pension_comparison.percentage_difference.toFixed(1) }}% więcej niż oczekiwane)
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Case 1: Solutions to achieve expected pension -->
+                    <div v-else class="space-y-6">
+                        <!-- Header -->
+                        <Card class="shadow-xl border-2 border-[rgb(240,94,94)] bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white backdrop-blur-sm">
+                            <CardContent class="p-6 text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(240,94,94)]/80 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl md:text-3xl font-bold text-[rgb(0,65,110)] mb-2">
+                                    Jak osiągnąć oczekiwaną emeryturę?
+                                </h3>
+                                <p class="text-gray-600 text-lg">
+                                    Twoja prognozowana emerytura wynosi {{ formatCurrency(simulationResult.expected_pension_comparison.predicted_pension) }}, 
+                                    a oczekujesz {{ formatCurrency(simulationResult.expected_pension_comparison.expected_pension) }}.
+                                </p>
+                                <div class="mt-4 text-xl font-bold text-[rgb(240,94,94)]">
+                                    Brakuje: {{ formatCurrency(Math.abs(simulationResult.expected_pension_comparison.difference)) }}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Solution 1: Extend work period -->
+                        <Card v-if="simulationResult.expected_pension_comparison.solutions?.extend_work_period?.additional_years > 0" 
+                              class="shadow-xl border-2 border-[rgb(63,132,210)] bg-gradient-to-br from-white to-[rgb(63,132,210)]/5 backdrop-blur-sm">
+                            <CardHeader class="bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent">
+                                <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span>Rozwiązanie 1: Przedłużenie okresu pracy</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent class="p-6">
+                                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-3xl font-bold text-[rgb(63,132,210)] mb-2">
+                                            +{{ simulationResult.expected_pension_comparison.solutions.extend_work_period.additional_years }}
+                                        </div>
+                                        <div class="text-sm text-gray-600">Dodatkowych lat pracy</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-2xl font-bold text-[rgb(0,65,110)] mb-2">
+                                            {{ simulationResult.expected_pension_comparison.solutions.extend_work_period.new_retirement_year }}
+                                        </div>
+                                        <div class="text-sm text-gray-600">Nowy rok emerytury</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-2xl font-bold text-[rgb(0,153,63)] mb-2">
+                                            {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.extend_work_period.new_monthly_pension) }}
+                                        </div>
+                                        <div class="text-sm text-gray-600">Nowa emerytura</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(63,132,210)]">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-6 h-6 text-[rgb(63,132,210)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-sm text-gray-700 leading-relaxed">
+                                            <strong>Jak to działa:</strong> Pracując dłużej, zwiększasz zgromadzony kapitał emerytalny (dodatkowe składki) 
+                                            oraz skracasz statystyczny okres pobierania emerytury, co przekłada się na wyższe miesięczne świadczenie.
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Solution 2: Higher salary -->
+                        <Card v-if="simulationResult.expected_pension_comparison.solutions?.higher_salary?.required_salary > 0" 
+                              class="shadow-xl border-2 border-[rgb(0,153,63)] bg-gradient-to-br from-white to-[rgb(0,153,63)]/5 backdrop-blur-sm">
+                            <CardHeader class="bg-gradient-to-r from-[rgb(0,153,63)]/10 to-transparent">
+                                <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span>Rozwiązanie 2: Wyższe wynagrodzenie</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent class="p-6">
+                                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-2xl font-bold text-[rgb(0,153,63)] mb-2">
+                                            {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.higher_salary.required_salary) }}
+                                        </div>
+                                        <div class="text-sm text-gray-600">Wymagane wynagrodzenie</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-2xl font-bold text-[rgb(0,65,110)] mb-2">
+                                            +{{ formatCurrency(simulationResult.expected_pension_comparison.solutions.higher_salary.salary_increase) }}
+                                        </div>
+                                        <div class="text-sm text-gray-600">Wzrost wynagrodzenia</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-2xl font-bold text-[rgb(240,94,94)] mb-2">
+                                            +{{ simulationResult.expected_pension_comparison.solutions.higher_salary.percentage_increase.toFixed(1) }}%
+                                        </div>
+                                        <div class="text-sm text-gray-600">Procentowy wzrost</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-[rgb(0,153,63)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(0,153,63)]">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-6 h-6 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-sm text-gray-700 leading-relaxed">
+                                            <strong>Jak to działa:</strong> Wyższe wynagrodzenie oznacza wyższe składki emerytalne, 
+                                            które są podstawą do obliczenia przyszłej emerytury. Im wyższe składki, tym wyższa emerytura.
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Solution 3: Investment savings -->
+                        <Card v-if="simulationResult.expected_pension_comparison.solutions?.investment_savings?.monthly_savings > 0" 
+                              class="shadow-xl border-2 border-[rgb(255,179,79)] bg-gradient-to-br from-white to-[rgb(255,179,79)]/5 backdrop-blur-sm">
+                            <CardHeader class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent">
+                                <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                            <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span>Rozwiązanie 3: Oszczędności i inwestycje</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent class="p-6">
+                                <div class="grid md:grid-cols-4 gap-4 mb-6">
+                                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-xl font-bold text-[rgb(255,179,79)] mb-1">
+                                            {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.investment_savings.monthly_savings) }}
+                                        </div>
+                                        <div class="text-xs text-gray-600">Miesięczne oszczędności</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-xl font-bold text-[rgb(0,65,110)] mb-1">
+                                            {{ simulationResult.expected_pension_comparison.solutions.investment_savings.percentage_of_salary.toFixed(1) }}%
+                                        </div>
+                                        <div class="text-xs text-gray-600">Od wynagrodzenia</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-xl font-bold text-[rgb(0,153,63)] mb-1">
+                                            {{ simulationResult.expected_pension_comparison.solutions.investment_savings.investment_return_rate.toFixed(1) }}%
+                                        </div>
+                                        <div class="text-xs text-gray-600">Roczny zwrot</div>
+                                    </div>
+                                    
+                                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-[rgb(190,195,206)]/30 text-center">
+                                        <div class="text-lg font-bold text-[rgb(63,132,210)] mb-1">
+                                            {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.investment_savings.total_investment_needed) }}
+                                        </div>
+                                        <div class="text-xs text-gray-600">Łączna kwota</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(255,179,79)]">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-sm text-gray-700 leading-relaxed">
+                                            <strong>Jak to działa:</strong> Oszczędzając i inwestując {{ simulationResult.expected_pension_comparison.solutions.investment_savings.percentage_of_salary.toFixed(1) }}% 
+                                            swojego wynagrodzenia z rocznym zwrotem {{ simulationResult.expected_pension_comparison.solutions.investment_savings.investment_return_rate.toFixed(1) }}% powyżej inflacji, 
+                                            zgromadzisz wystarczające środki, aby uzupełnić różnicę między prognozowaną a oczekiwaną emeryturą.
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
 
                 <!-- Szczegóły -->
                 <div class="grid md:grid-cols-2 gap-6">
@@ -1226,15 +1508,15 @@ const resetForm = () => {
                         </svg>
                         Wykonaj nową symulację
                     </Button>
-                    <a
-                        href="/dashboard-prognozowania"
+                    <Link
+                        :href="getAdvancedDashboardUrl()"
                         class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white hover:from-[rgb(63,132,210)]/90 hover:to-[rgb(0,65,110)]/90 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         Zaawansowany Dashboard
-                    </a>
+                    </Link>
                     <Link
                         :href="home()"
                         class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"

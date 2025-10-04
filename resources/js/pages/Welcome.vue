@@ -3,6 +3,7 @@ import { dashboard, login, register } from '@/routes';
 import pensionSimulation from '@/routes/pension-simulation';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import axios from 'axios';
 
 interface Props {
@@ -32,6 +33,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Toast notifications
+const toast = useToast();
 
 // Dane o grupach emerytalnych
 const pensionGroups = [
@@ -212,8 +216,7 @@ const copyShareLink = async () => {
     if (shareUrl.value) {
         try {
             await navigator.clipboard.writeText(shareUrl.value);
-            // Można dodać toast notification tutaj
-            alert('Link został skopiowany do schowka!');
+            toast.success('Link został skopiowany do schowka!');
         } catch (error) {
             console.error('Błąd podczas kopiowania linku:', error);
         }

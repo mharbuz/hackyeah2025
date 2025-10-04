@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PensionSession;
 use App\Services\PensionCalculationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -41,11 +43,59 @@ class AdvancedPensionForecastController extends Controller
     /**
      * Wyświetla zaawansowany dashboard prognozowania
      *
-     * @return Response Widok Inertia z dashboardem
+     * @param Request $request
+     * @return Response|RedirectResponse Widok Inertia z dashboardem lub przekierowanie
      */
-    public function index(): Response
+    public function index(Request $request): Response|RedirectResponse
     {
-        return Inertia::render('PensionForecastDashboard');
+        $sessionUuid = $request->query('session');
+        
+        // If session parameter exists, validate it
+        if ($sessionUuid) {
+            $session = PensionSession::where('uuid', $sessionUuid)
+                ->notExpired()
+                ->first();
+
+            // If session doesn't exist, is expired, or doesn't have pension_value, redirect to homepage
+            if (!$session || !$session->pension_value) {
+                return redirect()->route('home');
+            }
+
+            // If session has form data, pass it to the frontend
+            if ($session->form_data) {
+                // Map basic simulation data to advanced dashboard format
+                $formData = $session->form_data;
+                
+                // Ensure all required fields exist with defaults
+                $mappedFormData = [
+                    'age' => $formData['age'] ?? null,
+                    'gender' => $formData['gender'] ?? null,
+                    'gross_salary' => $formData['gross_salary'] ?? null,
+                    'retirement_year' => $formData['retirement_year'] ?? null,
+                    'account_balance' => $formData['account_balance'] ?? null,
+                    'subaccount_balance' => $formData['subaccount_balance'] ?? null,
+                    'wage_indexation_rate' => $formData['wage_indexation_rate'] ?? 5.0, // Default value
+                    'historical_data' => $formData['historical_data'] ?? [],
+                    'future_data' => $formData['future_data'] ?? [],
+                ];
+                
+                return Inertia::render('PensionForecastDashboard', [
+                    'sessionUuid' => $sessionUuid,
+                    'expectedPension' => $session->pension_value,
+                    'existingFormData' => $mappedFormData,
+                    'existingSimulationResults' => $session->simulation_results
+                ]);
+            }
+            
+            // Session exists and has pension_value but no form data yet
+            return Inertia::render('PensionForecastDashboard', [
+                'sessionUuid' => $sessionUuid,
+                'expectedPension' => $session->pension_value
+            ]);
+        }
+        
+        // No session parameter - redirect to homepage
+        return redirect()->route('home');
     }
 
     /**
@@ -59,7 +109,7 @@ class AdvancedPensionForecastController extends Controller
         $validated = $request->validate([
             'age' => 'required|integer|min:18|max:100',
             'gender' => 'required|in:male,female',
-            'current_gross_salary' => 'required|numeric|min:1000|max:100000',
+            'gross_salary' => 'required|numeric|min:1000|max:100000',
             'retirement_year' => 'required|integer|min:' . date('Y') . '|max:' . (date('Y') + 50),
             'account_balance' => 'nullable|numeric|min:0|max:10000000',
             'subaccount_balance' => 'nullable|numeric|min:0|max:10000000',
@@ -72,13 +122,14 @@ class AdvancedPensionForecastController extends Controller
             'future_data.*.year' => 'required|integer',
             'future_data.*.gross_salary' => 'required|numeric|min:0',
             'future_data.*.sick_leave_days' => 'required|integer|min:0|max:365',
+            'session_uuid' => 'nullable|string|uuid',
         ]);
 
         // Oblicz bazową prognozę
         $basePension = $this->calculationService->calculatePension(
             age: $validated['age'],
             gender: $validated['gender'],
-            grossSalary: $validated['current_gross_salary'],
+            grossSalary: $validated['gross_salary'],
             retirementYear: $validated['retirement_year'],
             accountBalance: $validated['account_balance'] ?? null,
             subaccountBalance: $validated['subaccount_balance'] ?? null,
@@ -90,7 +141,7 @@ class AdvancedPensionForecastController extends Controller
         $accountGrowthForecast = $this->calculateAccountGrowthForecast(
             $validated['age'],
             $validated['gender'],
-            $validated['current_gross_salary'],
+            $validated['gross_salary'],
             $validated['retirement_year'],
             $validated['account_balance'] ?? null,
             $validated['subaccount_balance'] ?? null,
@@ -111,7 +162,7 @@ class AdvancedPensionForecastController extends Controller
             $delayedPension = $this->calculationService->calculatePension(
                 age: $validated['age'] + $additionalYears,
                 gender: $validated['gender'],
-                grossSalary: $validated['current_gross_salary'],
+                grossSalary: $validated['gross_salary'],
                 retirementYear: $validated['retirement_year'] + $additionalYears,
                 accountBalance: $validated['account_balance'] ?? null,
                 subaccountBalance: $validated['subaccount_balance'] ?? null,
@@ -127,7 +178,7 @@ class AdvancedPensionForecastController extends Controller
             ];
         }
 
-        return response()->json([
+        $result = [
             'monthly_pension' => $basePension['monthly_pension'],
             'account_balance' => $basePension['account_balance'],
             'subaccount_balance' => $basePension['subaccount_balance'],
@@ -137,7 +188,35 @@ class AdvancedPensionForecastController extends Controller
             'account_growth_forecast' => $accountGrowthForecast,
             'sick_leave_impact' => $detailedSickLeaveImpact,
             'delayed_retirement_options' => $delayedRetirementOptions,
-        ]);
+        ];
+
+        // If session_uuid is provided, update the existing session with form data
+        if (isset($validated['session_uuid'])) {
+            $session = PensionSession::where('uuid', $validated['session_uuid'])
+                ->notExpired()
+                ->first();
+
+            if ($session) {
+                // Update session with form data and calculation results
+                $session->update([
+                    'form_data' => [
+                        'age' => $validated['age'],
+                        'gender' => $validated['gender'],
+                        'gross_salary' => $validated['gross_salary'],
+                        'retirement_year' => $validated['retirement_year'],
+                        'account_balance' => $validated['account_balance'] ?? null,
+                        'subaccount_balance' => $validated['subaccount_balance'] ?? null,
+                        'wage_indexation_rate' => $validated['wage_indexation_rate'],
+                        'historical_data' => $validated['historical_data'] ?? [],
+                        'future_data' => $validated['future_data'] ?? [],
+                    ],
+                    'simulation_results' => $result,
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return response()->json($result);
     }
 
     /**

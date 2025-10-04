@@ -1,11 +1,35 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed, watch, reactive } from 'vue';
+import { ref, computed, watch, reactive, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Props
+interface Props {
+    sessionUuid?: string;
+    expectedPension?: number; // Expected pension from session
+    existingFormData?: {
+        age: number;
+        gender: 'male' | 'female';
+        gross_salary: number;
+        retirement_year: number;
+        account_balance?: number;
+        subaccount_balance?: number;
+        wage_indexation_rate: number;
+        historical_data?: YearlyData[];
+        future_data?: YearlyData[];
+    };
+    existingSimulationResults?: any;
+}
+
+const props = defineProps<Props>();
+
+// Toast notifications
+const toast = useToast();
 
 // Typy
 interface YearlyData {
@@ -17,7 +41,7 @@ interface YearlyData {
 interface FormData {
     age: string;
     gender: 'male' | 'female' | '';
-    current_gross_salary: string;
+    gross_salary: string;
     retirement_year: string;
     account_balance: string;
     subaccount_balance: string;
@@ -56,7 +80,7 @@ interface SimulationResult {
 const formData = ref<FormData>({
     age: '',
     gender: '',
-    current_gross_salary: '',
+    gross_salary: '',
     retirement_year: '',
     account_balance: '',
     subaccount_balance: '',
@@ -83,6 +107,9 @@ const retirementAge = computed(() => {
     if (formData.value.gender === 'female') return 60;
     return null;
 });
+
+// Expected pension from session
+const expectedPension = computed(() => props.expectedPension);
 
 // Automatyczne obliczenie roku emerytalnego
 watch([() => formData.value.age, () => formData.value.gender], () => {
@@ -192,8 +219,8 @@ const validateForm = (): boolean => {
         return false;
     }
     
-    if (!formData.value.current_gross_salary) {
-        errors.value.current_gross_salary = 'Wynagrodzenie jest wymagane';
+    if (!formData.value.gross_salary) {
+        errors.value.gross_salary = 'Wynagrodzenie jest wymagane';
         return false;
     }
     
@@ -209,23 +236,30 @@ const handleSimulate = async () => {
     isSubmitting.value = true;
     
     try {
+        const requestBody: any = {
+            age: parseInt(formData.value.age),
+            gender: formData.value.gender,
+            gross_salary: parseFloat(formData.value.gross_salary),
+            retirement_year: parseInt(formData.value.retirement_year),
+            account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
+            subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
+            wage_indexation_rate: parseFloat(formData.value.wage_indexation_rate),
+            historical_data: historicalData.value,
+            future_data: futureData.value
+        };
+
+        // Include session UUID if present
+        if (props.sessionUuid) {
+            requestBody.session_uuid = props.sessionUuid;
+        }
+
         const response = await fetch('/api/pension/advanced-simulate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
-            body: JSON.stringify({
-                age: parseInt(formData.value.age),
-                gender: formData.value.gender,
-                current_gross_salary: parseFloat(formData.value.current_gross_salary),
-                retirement_year: parseInt(formData.value.retirement_year),
-                account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
-                subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
-                wage_indexation_rate: parseFloat(formData.value.wage_indexation_rate),
-                historical_data: historicalData.value,
-                future_data: futureData.value
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();
@@ -243,7 +277,7 @@ const handleSimulate = async () => {
         
     } catch (error) {
         console.error('Błąd symulacji:', error);
-        alert('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
     } finally {
         isSubmitting.value = false;
     }
@@ -254,7 +288,7 @@ const resetForm = () => {
     formData.value = {
         age: '',
         gender: '',
-        current_gross_salary: '',
+        gross_salary: '',
         retirement_year: '',
         account_balance: '',
         subaccount_balance: '',
@@ -318,6 +352,31 @@ const generateAreaPath = (data: AccountGrowthData[], field: keyof AccountGrowthD
     return linePath + closePath;
 };
 
+// Generowanie URL do udostępnienia
+const getShareUrl = () => {
+    if (!props.sessionUuid) return '';
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/dashboard-prognozowania?session=${props.sessionUuid}`;
+};
+
+// Kopiowanie linku do schowka
+const copyShareLink = async () => {
+    try {
+        await navigator.clipboard.writeText(getShareUrl());
+        toast.success('Link został skopiowany do schowka!');
+    } catch (err) {
+        console.error('Błąd kopiowania do schowka:', err);
+        // Fallback dla starszych przeglądarek
+        const textArea = document.createElement('textarea');
+        textArea.value = getShareUrl();
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast.success('Link został skopiowany do schowka!');
+    }
+};
+
 // Generowanie raportu PDF
 const generatePDF = async () => {
     if (!simulationResult.value) return;
@@ -369,15 +428,46 @@ const generatePDF = async () => {
         window.URL.revokeObjectURL(url);
         
         // Pokaż komunikat sukcesu
-        alert('✅ Raport PDF został pomyślnie wygenerowany i pobrany!');
+        toast.success('Raport PDF został pomyślnie wygenerowany i pobrany!');
         
     } catch (error) {
         console.error('Błąd generowania PDF:', error);
-        alert('❌ Wystąpił błąd podczas generowania raportu PDF. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas generowania raportu PDF. Spróbuj ponownie.');
     } finally {
         isGeneratingPDF.value = false;
     }
 };
+
+// Populate form with existing data if available
+onMounted(() => {
+    if (props.existingFormData) {
+        formData.value = {
+            age: props.existingFormData.age?.toString() || '',
+            gender: props.existingFormData.gender || '',
+            gross_salary: props.existingFormData.gross_salary?.toString() || '',
+            retirement_year: props.existingFormData.retirement_year?.toString() || '',
+            account_balance: props.existingFormData.account_balance?.toString() || '',
+            subaccount_balance: props.existingFormData.subaccount_balance?.toString() || '',
+            wage_indexation_rate: props.existingFormData.wage_indexation_rate?.toString() || '5.0'
+        };
+        
+        // Populate historical data if available
+        if (props.existingFormData.historical_data && Array.isArray(props.existingFormData.historical_data)) {
+            historicalData.value = props.existingFormData.historical_data;
+        }
+        
+        // Populate future data if available
+        if (props.existingFormData.future_data && Array.isArray(props.existingFormData.future_data)) {
+            futureData.value = props.existingFormData.future_data;
+        }
+    }
+    
+    // If there are existing simulation results, show them
+    if (props.existingSimulationResults) {
+        simulationResult.value = props.existingSimulationResults;
+        showResults.value = true;
+    }
+});
 </script>
 
 <template>
@@ -428,6 +518,14 @@ const generatePDF = async () => {
                 <p class="text-white/90 text-lg md:text-xl max-w-3xl mx-auto drop-shadow">
                     Wprowadź dokładne dane historyczne i przyszłościowe dla najprecyzyjniejszej prognozy
                 </p>
+                <!-- Expected Pension Display -->
+                <div v-if="expectedPension" class="mt-6 inline-block bg-white/95 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-2xl">
+                    <p class="text-sm text-[rgb(0,65,110)] font-semibold mb-1">Twoja oczekiwana emerytura:</p>
+                    <p class="text-4xl font-bold text-[rgb(255,179,79)]">
+                        {{ expectedPension.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} zł
+                    </p>
+                    <p class="text-xs text-gray-600 mt-1">Zoptymalizuj swoje oszczędności, aby osiągnąć ten cel</p>
+                </div>
             </div>
 
             <!-- Główny formularz -->
@@ -445,177 +543,223 @@ const generatePDF = async () => {
                 
                 <CardContent class="p-6 md:p-8 lg:p-10">
                     <form @submit.prevent="handleSimulate" class="space-y-10">
-                        <!-- Dane osobowe -->
-                        <div class="grid md:grid-cols-4 gap-6">
-                            <!-- Wiek -->
-                            <div class="space-y-3">
-                                <Label for="age" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Obecny wiek <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <Input
-                                    id="age"
-                                    v-model="formData.age"
-                                    type="number"
-                                    min="18"
-                                    max="100"
-                                    placeholder="np. 35"
-                                    @blur="initializeHistoricalData"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    required
-                                />
-                            </div>
-
-                            <!-- Wiek rozpoczęcia pracy -->
-                            <div class="space-y-3">
-                                <Label for="work_start_age" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Wiek rozpoczęcia pracy
-                                </Label>
-                                <Input
-                                    id="work_start_age"
-                                    v-model.number="workStartAge"
-                                    type="number"
-                                    min="15"
-                                    max="65"
-                                    placeholder="np. 25"
-                                    @blur="initializeHistoricalData"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                />
-                                <p class="text-xs text-gray-600">
-                                    Od tego wieku generujemy historię
-                                </p>
-                            </div>
-
-                            <!-- Płeć -->
-                            <div class="space-y-3">
-                                <Label class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Płeć <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <div class="flex gap-3">
-                                    <button
-                                        type="button"
-                                        @click="formData.gender = 'male'"
-                                        :class="[
-                                            'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
-                                            formData.gender === 'male'
-                                                ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
-                                        ]"
-                                    >
-                                        Mężczyzna
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="formData.gender = 'female'"
-                                        :class="[
-                                            'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
-                                            formData.gender === 'female'
-                                                ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
-                                        ]"
-                                    >
-                                        Kobieta
-                                    </button>
+                        <!-- SEKCJA 1: DANE PODSTAWOWE (wspólne z symulacją podstawową) -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(0,153,63)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    1
                                 </div>
-                                <p v-if="retirementAge" class="text-[rgb(0,153,63)] text-sm font-medium">
-                                    Wiek emerytalny: {{ retirementAge }} lat
-                                </p>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Informacje podstawowe
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                                    Wspólne z symulacją podstawową
+                                </span>
                             </div>
-
-                            <!-- Rok emerytury -->
-                            <div class="space-y-3">
-                                <Label for="retirement_year" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Rok emerytury <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <Input
-                                    id="retirement_year"
-                                    v-model="formData.retirement_year"
-                                    type="number"
-                                    :min="new Date().getFullYear()"
-                                    placeholder="np. 2055"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Wynagrodzenie i salda -->
-                        <div class="grid md:grid-cols-3 gap-6">
-                            <div class="space-y-3">
-                                <Label for="current_gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <div class="relative">
+                            
+                            <!-- Wiek, Płeć, Rok emerytury -->
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <!-- Wiek -->
+                                <div class="space-y-3">
+                                    <Label for="age" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Obecny wiek <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
                                     <Input
-                                        id="current_gross_salary"
-                                        v-model="formData.current_gross_salary"
+                                        id="age"
+                                        v-model="formData.age"
                                         type="number"
-                                        step="100"
-                                        placeholder="np. 5000"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        min="18"
+                                        max="100"
+                                        placeholder="np. 35"
+                                        @blur="initializeHistoricalData"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
                                         required
                                     />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                </div>
+
+                                <!-- Płeć -->
+                                <div class="space-y-3">
+                                    <Label class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Płeć <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <div class="flex gap-3">
+                                        <button
+                                            type="button"
+                                            @click="formData.gender = 'male'"
+                                            :class="[
+                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                formData.gender === 'male'
+                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                            ]"
+                                        >
+                                            Mężczyzna
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="formData.gender = 'female'"
+                                            :class="[
+                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                formData.gender === 'female'
+                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                            ]"
+                                        >
+                                            Kobieta
+                                        </button>
+                                    </div>
+                                    <p v-if="retirementAge" class="text-[rgb(0,153,63)] text-sm font-medium">
+                                        Wiek emerytalny: {{ retirementAge }} lat
+                                    </p>
+                                </div>
+
+                                <!-- Rok emerytury -->
+                                <div class="space-y-3">
+                                    <Label for="retirement_year" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Rok emerytury <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <Input
+                                        id="retirement_year"
+                                        v-model="formData.retirement_year"
+                                        type="number"
+                                        :min="new Date().getFullYear()"
+                                        placeholder="np. 2055"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        required
+                                    />
                                 </div>
                             </div>
 
-                            <div class="space-y-3">
-                                <Label for="account_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Saldo konta ZUS
-                                </Label>
-                                <div class="relative">
-                                    <Input
-                                        id="account_balance"
-                                        v-model="formData.account_balance"
-                                        type="number"
-                                        step="100"
-                                        placeholder="opcjonalnie"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                            <!-- Wynagrodzenie i salda -->
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="space-y-3">
+                                    <Label for="gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="gross_salary"
+                                            v-model="formData.gross_salary"
+                                            type="number"
+                                            step="100"
+                                            placeholder="np. 5000"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            required
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="space-y-3">
-                                <Label for="subaccount_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Saldo subkonta ZUS
-                                </Label>
-                                <div class="relative">
-                                    <Input
-                                        id="subaccount_balance"
-                                        v-model="formData.subaccount_balance"
-                                        type="number"
-                                        step="100"
-                                        placeholder="opcjonalnie"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                <div class="space-y-3">
+                                    <Label for="account_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Saldo konta ZUS
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="account_balance"
+                                            v-model="formData.account_balance"
+                                            type="number"
+                                            step="100"
+                                            placeholder="opcjonalnie"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <Label for="subaccount_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Saldo subkonta ZUS
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="subaccount_balance"
+                                            v-model="formData.subaccount_balance"
+                                            type="number"
+                                            step="100"
+                                            placeholder="opcjonalnie"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Wskaźnik indeksacji -->
-                        <div class="space-y-3">
-                            <Label for="wage_indexation_rate" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                Wskaźnik indeksacji wynagrodzeń (% rocznie)
-                            </Label>
-                            <div class="relative max-w-xs">
-                                <Input
-                                    id="wage_indexation_rate"
-                                    v-model="formData.wage_indexation_rate"
-                                    type="number"
-                                    step="0.1"
-                                    placeholder="5.0"
-                                    class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                />
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">%</span>
-                            </div>
-                            <p class="text-sm text-gray-600">
-                                Prognozowany średnioroczny wzrost wynagrodzeń
-                            </p>
-                        </div>
-
-                        <!-- Przełącznik: Historia vs Przyszłość -->
+                        <!-- SEKCJA 2: DANE ZAAWANSOWANE (tylko dla dashboard prognozowania) -->
                         <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(255,179,79)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    2
+                                </div>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Dane zaawansowane
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-orange-100 px-3 py-1 rounded-full">
+                                    Tylko dla prognozy szczegółowej
+                                </span>
+                            </div>
+
+                            <!-- Wiek rozpoczęcia pracy i wskaźnik indeksacji -->
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- Wiek rozpoczęcia pracy -->
+                                <div class="space-y-3">
+                                    <Label for="work_start_age" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Wiek rozpoczęcia pracy
+                                    </Label>
+                                    <Input
+                                        id="work_start_age"
+                                        v-model.number="workStartAge"
+                                        type="number"
+                                        min="15"
+                                        max="65"
+                                        placeholder="np. 25"
+                                        @blur="initializeHistoricalData"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                    />
+                                    <p class="text-xs text-gray-600">
+                                        Od tego wieku generujemy historię
+                                    </p>
+                                </div>
+
+                                <!-- Wskaźnik indeksacji -->
+                                <div class="space-y-3">
+                                    <Label for="wage_indexation_rate" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Wskaźnik indeksacji wynagrodzeń (% rocznie)
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="wage_indexation_rate"
+                                            v-model="formData.wage_indexation_rate"
+                                            type="number"
+                                            step="0.1"
+                                            placeholder="5.0"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">%</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        Prognozowany średnioroczny wzrost wynagrodzeń
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 3: DANE HISTORYCZNE I PRZYSZŁOŚCIOWE -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(63,132,210)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    3
+                                </div>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Dane historyczne i przyszłościowe
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full">
+                                    Szczegółowa analiza zatrudnienia
+                                </span>
+                            </div>
+
+                            <!-- Przełącznik: Historia vs Przyszłość -->
                             <div class="flex gap-3 bg-gray-100 p-2 rounded-xl">
                                 <button
                                     type="button"
@@ -1576,6 +1720,67 @@ const generatePDF = async () => {
                             <p class="text-center text-sm text-gray-600">
                                 Raport zostanie wygenerowany w formacie PDF i automatycznie pobrany na Twoje urządzenie
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Udostępnianie symulacji -->
+                <Card class="shadow-2xl border-4 border-[rgb(0,153,63)] bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white">
+                    <CardHeader class="bg-gradient-to-r from-[rgb(0,153,63)]/20 to-transparent border-b-2 border-[rgb(0,153,63)]">
+                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold">Udostępnij symulację</div>
+                                <div class="text-sm font-normal text-gray-600 mt-1">Wyślij link do swojej prognozy emerytalnej</div>
+                            </div>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-8">
+                        <div class="space-y-6">
+                            <!-- Link do udostępnienia -->
+                            <div v-if="sessionUuid" class="space-y-4">
+                                <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                        </svg>
+                                        <span class="font-semibold text-[rgb(0,65,110)]">Link do udostępnienia:</span>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <input 
+                                            :value="getShareUrl()" 
+                                            readonly 
+                                            class="flex-1 p-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:border-[rgb(0,153,63)] focus:outline-none"
+                                        />
+                                        <Button
+                                            @click="copyShareLink"
+                                            class="px-6 py-3 bg-[rgb(0,153,63)] hover:bg-[rgb(0,153,63)]/90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                                        >
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            Kopiuj
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <p class="text-center text-sm text-gray-600">
+                                    Link będzie działał przez 30 dni. Odbiorcy będą mogli zobaczyć Twoją prognozę emerytalną.
+                                </p>
+                            </div>
+
+                            <!-- Brak sesji -->
+                            <div v-else class="text-center py-8">
+                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                <p class="text-gray-600 mb-2">Aby udostępnić symulację, najpierw wykonaj prognozę</p>
+                                <p class="text-sm text-gray-500">Wypełnij formularz powyżej i kliknij "Zaprognozuj szczegółową emeryturę"</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
