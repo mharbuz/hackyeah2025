@@ -37,8 +37,10 @@ const props = defineProps<Props>();
 // Toast notifications
 const toast = useToast();
 
-// Dane o grupach emerytalnych
-const pensionGroups = [
+// Dane nie są już hardcoded - będą pobierane z backendu
+
+// Uproszczone grupy do wyświetlania opisów (zawsze 5 grup, niezależnie od urządzenia)
+const descriptiveGroups = [
     {
         name: 'Poniżej minimalnej',
         amount: 1200,
@@ -88,6 +90,7 @@ const shareUrl = ref<string | null>(null);
 const isCreatingSession = ref(false);
 const isMobileMenuOpen = ref(false);
 const validationError = ref<string | null>(null);
+const dynamicPensionData = ref<Props['sharedPensionData'] | null>(null);
 
 const toggleMobileMenu = () => {
     isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -124,13 +127,16 @@ onMounted(() => {
 
 // Średnia krajowa
 const averagePension = computed(() => {
-    return props.sharedPensionData?.average_pension || 3500;
+    return props.sharedPensionData?.average_pension || dynamicPensionData.value?.average_pension || 3500;
 });
 
 // Oblicz procentową różnicę
 const percentageDifference = computed(() => {
     if (props.sharedPensionData) {
         return props.sharedPensionData.percentage_difference.toFixed(1);
+    }
+    if (dynamicPensionData.value) {
+        return dynamicPensionData.value.percentage_difference.toFixed(1);
     }
     if (!desiredPension.value) return 0;
     return ((desiredPension.value - averagePension.value) / averagePension.value * 100).toFixed(1);
@@ -141,13 +147,49 @@ const userGroup = computed(() => {
     if (props.sharedPensionData) {
         return props.sharedPensionData.user_group;
     }
+    if (dynamicPensionData.value) {
+        return dynamicPensionData.value.user_group;
+    }
     if (!desiredPension.value) return null;
-    return pensionGroups.find(group => desiredPension.value! <= group.amount) || pensionGroups[pensionGroups.length - 1];
+    const groups = currentPensionGroups.value;
+    return groups.find((group: any) => desiredPension.value! <= group.amount) || groups[groups.length - 1];
 });
 
-// Użyj grup z props lub domyślnych
+// Użyj grup z props lub dynamicznie załadowanych danych (backend automatically selects mobile/desktop version)
 const currentPensionGroups = computed(() => {
-    return props.sharedPensionData?.pension_groups || pensionGroups;
+    return props.sharedPensionData?.pension_groups || dynamicPensionData.value?.pension_groups || [];
+});
+
+// Funkcja obliczająca pozycję na wykresie (0-100%)
+const calculateChartPosition = (pensionAmount: number) => {
+    const groups = currentPensionGroups.value;
+    
+    // Znajdź indeks grupy, do której należy emerytura
+    let groupIndex = groups.findIndex(group => pensionAmount <= group.amount);
+    if (groupIndex === -1) groupIndex = groups.length - 1;
+    
+    // Oblicz pozycję jako procent
+    // Każda grupa zajmuje równą szerokość: 100% / liczba grup
+    const groupWidth = 100 / groups.length;
+    
+    // Pozycja to środek danej grupy
+    return (groupIndex * groupWidth) + (groupWidth / 2);
+};
+
+// Maksymalna wartość procentowa dla dynamicznej skali osi Y
+const maxPercentage = computed(() => {
+    const groups = currentPensionGroups.value;
+    if (groups.length === 0) return 10;
+    
+    const max = Math.max(...groups.map(g => g.percentage));
+    // Zaokrąglij w górę do najbliższej wartości 5, 10, 15, 20, 25, etc
+    return Math.ceil(max / 5) * 5;
+});
+
+// Znajdź grupę użytkownika w kontekście opisowych grup (5 grup)
+const descriptiveUserGroup = computed(() => {
+    if (!desiredPension.value) return null;
+    return descriptiveGroups.find(group => desiredPension.value! <= group.amount) || descriptiveGroups[descriptiveGroups.length - 1];
 });
 
 // Formatowanie daty dla udostępnionej sesji
@@ -236,6 +278,11 @@ const handleSubmit = async () => {
         if (response.data.success) {
             sessionUuid.value = response.data.session_uuid;
             shareUrl.value = response.data.share_url;
+            
+            // Zapisz dane o rozkładzie emerytur
+            if (response.data.pension_data) {
+                dynamicPensionData.value = response.data.pension_data;
+            }
 
             // Zaktualizuj URL w przeglądarce
             window.history.pushState({}, '', shareUrl.value);
@@ -570,6 +617,147 @@ const getPensionSimulationUrl = () => {
                 v-if="showResults && desiredPension"
                 class="space-y-6"
             >
+                <!-- Wykres rozkładu emerytur - słupki -->
+                <div class="bg-white border border-gray-200 shadow-sm p-4 md:p-8 lg:p-12">
+                    <h3 class="text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-center" style="color: rgb(0, 65, 110);">
+                        Rozkład emerytur w Polsce
+                    </h3>
+                    <p class="text-center text-gray-600 mb-8 md:mb-12 text-xs md:text-sm lg:text-base">
+                        Wysokość słupka pokazuje ile procent osób otrzymuje emeryturę w danym przedziale
+                    </p>
+                    
+                    <div class="max-w-6xl mx-auto overflow-x-auto">
+                        <div class="flex gap-3 md:gap-6 min-w-[600px] md:min-w-0">
+                            <!-- Oś Y (po lewej stronie) - dynamiczna skala -->
+                            <div class="flex flex-col justify-between flex-shrink-0" style="width: 60px; height: 280px;">
+                                <div class="text-right">
+                                    <div class="text-xs font-semibold text-gray-500 hidden md:block">Liczba osób</div>
+                                    <div class="text-xs md:text-sm font-bold mt-1" style="color: rgb(0, 65, 110);">{{ maxPercentage }}%</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs md:text-sm font-bold" style="color: rgb(0, 65, 110);">{{ (maxPercentage * 0.75).toFixed(1) }}%</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs md:text-sm font-bold" style="color: rgb(0, 65, 110);">{{ (maxPercentage * 0.5).toFixed(1) }}%</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs md:text-sm font-bold text-gray-400">{{ (maxPercentage * 0.25).toFixed(1) }}%</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Wykres słupkowy -->
+                            <div class="flex-1 min-w-0">
+                                <!-- Przestrzeń na etykiety nad wykresem -->
+                                <div class="h-16 md:h-20 mb-2"></div>
+                                
+                                <div class="relative" style="height: 280px;">
+                                    <!-- Linie poziome siatki -->
+                                    <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 0%;"></div>
+                                    <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 25%;"></div>
+                                    <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 50%;"></div>
+                                    <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 75%;"></div>
+                                    
+                                    <!-- Słupki -->
+                                    <div class="absolute bottom-0 left-0 right-0 flex items-end gap-0.5" style="height: 100%;">
+                                        <div
+                                            v-for="(group, index) in currentPensionGroups"
+                                            :key="'bar-' + index"
+                                            class="flex-1 relative transition-all duration-500"
+                                            :style="{
+                                                height: (group.percentage / maxPercentage * 100) + '%',
+                                                backgroundColor: group.color,
+                                                opacity: userGroup && userGroup.name === group.name ? 1 : 0.5,
+                                                minHeight: group.percentage >= 0.3 ? '' : '4px'
+                                            }"
+                                        >
+                                            <!-- Procent na słupku -->
+                                            <div v-if="group.percentage >= 2" class="absolute inset-0 flex items-center justify-center text-white font-bold text-xs">
+                                                {{ group.percentage }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Znacznik średniej krajowej (z-index 5 - pod słupkami) -->
+                                    <div 
+                                        class="absolute bottom-0 transition-all duration-500 pointer-events-none"
+                                        style="z-index: 5;"
+                                        :style="{
+                                            left: calculateChartPosition(averagePension) + '%',
+                                            transform: 'translateX(-50%)'
+                                        }"
+                                    >
+                                        <!-- Linia pionowa przezroczysta -->
+                                        <div class="w-1 mx-auto" style="background-color: rgba(0, 153, 63, 0.4); height: 280px;"></div>
+                                        
+                                        <!-- Etykieta poniżej wykresu -->
+                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm" 
+                                             style="background-color: rgb(0, 153, 63); top: 285px; left: 50%; transform: translateX(-50%);">
+                                            <div class="text-xs mb-1">Średnia krajowa</div>
+                                            <div class="text-sm md:text-base">{{ formatCurrency(averagePension) }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Znacznik Twojej emerytury (z-index 5 - pod słupkami) -->
+                                    <div 
+                                        v-if="desiredPension"
+                                        class="absolute bottom-0 transition-all duration-500 pointer-events-none"
+                                        style="z-index: 5;"
+                                        :style="{
+                                            left: calculateChartPosition(desiredPension) + '%',
+                                            transform: 'translateX(-50%)'
+                                        }"
+                                    >
+                                        <!-- Linia pionowa przezroczysta -->
+                                        <div class="w-1 mx-auto" style="background-color: rgba(0, 65, 110, 0.4); height: 296px;"></div>
+                                        
+                                        <!-- Etykieta powyżej wykresu -->
+                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm" 
+                                             style="background-color: rgb(0, 65, 110); bottom: 300px; left: 50%; transform: translateX(-50%);">
+                                            <div class="text-xs mb-1">Twoja emerytura</div>
+                                            <div class="text-sm md:text-base">{{ formatCurrency(desiredPension) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Przestrzeń na etykietę pod wykresem -->
+                                <div class="h-16 md:h-20 mt-2"></div>
+                                
+                                <!-- Etykiety przedziałów pod słupkami -->
+                                <div class="flex items-start gap-0.5 mt-3 md:mt-4 pt-3 md:pt-4 border-t-2" style="border-color: rgb(209, 213, 219);">
+                                    <div
+                                        v-for="(group, index) in currentPensionGroups"
+                                        :key="'label-' + index"
+                                        class="flex-1 text-center"
+                                    >
+                                        <div class="text-[9px] md:text-xs font-bold mb-1 break-words" style="color: rgb(0, 65, 110); line-height: 1.2;">
+                                            {{ group.name }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Różnica między Twoją emeryturą a średnią -->
+                    <div class="max-w-6xl mx-auto mt-8 p-4 md:p-6 border-2" 
+                         style="border-color: rgb(63, 132, 210); background-color: rgba(63, 132, 210, 0.05);">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <div class="text-xs md:text-sm font-semibold text-gray-600 mb-1">Różnica względem średniej</div>
+                                <div class="text-2xl md:text-3xl font-bold" style="color: rgb(0, 65, 110);">
+                                    {{ parseFloat(percentageDifference) >= 0 ? '+' : '' }}{{ percentageDifference }}%
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs md:text-sm font-semibold text-gray-600 mb-1">Różnica kwotowa</div>
+                                <div class="text-xl md:text-2xl font-bold" style="color: rgb(0, 65, 110);">
+                                    {{ parseFloat(percentageDifference) >= 0 ? '+' : '' }}{{ formatCurrency(desiredPension - averagePension) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Porównanie z średnią -->
                 <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
                     <h3 class="text-2xl lg:text-3xl font-bold mb-8 text-center" style="color: rgb(0, 65, 110);">
@@ -634,12 +822,12 @@ const getPensionSimulationUrl = () => {
 
                     <div class="space-y-3 mb-8">
                         <div
-                            v-for="(group, index) in currentPensionGroups"
+                            v-for="(group, index) in descriptiveGroups"
                             :key="index"
                             class="relative transition-all duration-200 border-2 p-4"
                             :style="{
-                                borderColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(209, 213, 219)',
-                                backgroundColor: userGroup && userGroup.name === group.name ? `${group.color}20` : 'rgb(249, 250, 251)'
+                                borderColor: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? group.color : 'rgb(209, 213, 219)',
+                                backgroundColor: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? `${group.color}20` : 'rgb(249, 250, 251)'
                             }"
                         >
                             <div class="flex items-center gap-4 mb-2">
@@ -649,31 +837,31 @@ const getPensionSimulationUrl = () => {
                                             <div
                                                 class="w-6 h-6 flex-shrink-0"
                                                 :style="{
-                                                    backgroundColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
+                                                    backgroundColor: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
                                                 }"
                                             ></div>
-                                            <span class="font-bold text-lg" :style="{ color: userGroup && userGroup.name === group.name ? 'rgb(0, 65, 110)' : 'rgb(75, 85, 99)' }">
+                                            <span class="font-bold text-lg" :style="{ color: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? 'rgb(0, 65, 110)' : 'rgb(75, 85, 99)' }">
                                                 {{ group.name }}
-                                                <span v-if="userGroup && userGroup.name === group.name" class="ml-2 text-base font-bold" :style="{ color: group.color }">
+                                                <span v-if="descriptiveUserGroup && descriptiveUserGroup.name === group.name" class="ml-2 text-base font-bold" :style="{ color: group.color }">
                                                     ← Twój przedział
                                                 </span>
                                             </span>
                                         </div>
                                         <div class="flex items-center gap-4">
-                                            <span class="text-base font-semibold" :style="{ color: userGroup && userGroup.name === group.name ? 'rgb(55, 65, 81)' : 'rgb(107, 114, 128)' }">
+                                            <span class="text-base font-semibold" :style="{ color: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? 'rgb(55, 65, 81)' : 'rgb(107, 114, 128)' }">
                                                 {{ group.percentage }}%
                                             </span>
-                                            <span class="text-base font-bold" :style="{ color: userGroup && userGroup.name === group.name ? group.color : 'rgb(107, 114, 128)' }">
+                                            <span class="text-base font-bold" :style="{ color: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? group.color : 'rgb(107, 114, 128)' }">
                                                 {{ formatCurrency(group.amount) }}
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="h-10 overflow-hidden" :style="{ backgroundColor: userGroup && userGroup.name === group.name ? 'rgb(243, 244, 246)' : 'rgb(229, 231, 235)' }">
+                                    <div class="h-10 overflow-hidden" :style="{ backgroundColor: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? 'rgb(243, 244, 246)' : 'rgb(229, 231, 235)' }">
                                         <div
                                             class="h-full transition-all duration-500 flex items-center justify-end pr-4"
                                             :style="{
                                                 width: group.percentage + '%',
-                                                backgroundColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
+                                                backgroundColor: descriptiveUserGroup && descriptiveUserGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
                                             }"
                                         >
                                             <span v-if="group.percentage > 15" class="text-white font-bold text-sm">
