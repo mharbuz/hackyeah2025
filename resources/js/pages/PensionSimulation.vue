@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, watch, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Toast notifications
+const toast = useToast();
 
 // Typy
 interface FormData {
@@ -335,7 +339,7 @@ const handleSubmit = async () => {
         
     } catch (error) {
         console.error('Błąd symulacji:', error);
-        alert('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
     } finally {
         isSubmitting.value = false;
     }

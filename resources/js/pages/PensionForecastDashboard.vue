@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, watch, reactive, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Toast notifications
+const toast = useToast();
 
 // Typy
 interface YearlyData {
@@ -273,7 +277,7 @@ const handleSimulate = async () => {
         
     } catch (error) {
         console.error('Błąd symulacji:', error);
-        alert('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
     } finally {
         isSubmitting.value = false;
     }
@@ -359,8 +363,7 @@ const getShareUrl = () => {
 const copyShareLink = async () => {
     try {
         await navigator.clipboard.writeText(getShareUrl());
-        // Można dodać toast notification tutaj
-        alert('✅ Link został skopiowany do schowka!');
+        toast.success('Link został skopiowany do schowka!');
     } catch (err) {
         console.error('Błąd kopiowania do schowka:', err);
         // Fallback dla starszych przeglądarek
@@ -370,7 +373,7 @@ const copyShareLink = async () => {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('✅ Link został skopiowany do schowka!');
+        toast.success('Link został skopiowany do schowka!');
     }
 };
 
@@ -425,11 +428,11 @@ const generatePDF = async () => {
         window.URL.revokeObjectURL(url);
         
         // Pokaż komunikat sukcesu
-        alert('✅ Raport PDF został pomyślnie wygenerowany i pobrany!');
+        toast.success('Raport PDF został pomyślnie wygenerowany i pobrany!');
         
     } catch (error) {
         console.error('Błąd generowania PDF:', error);
-        alert('❌ Wystąpił błąd podczas generowania raportu PDF. Spróbuj ponownie.');
+        toast.error('Wystąpił błąd podczas generowania raportu PDF. Spróbuj ponownie.');
     } finally {
         isGeneratingPDF.value = false;
     }
