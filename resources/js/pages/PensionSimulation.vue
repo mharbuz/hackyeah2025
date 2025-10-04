@@ -126,6 +126,7 @@ const errors = ref<ValidationErrors>({});
 const isSubmitting = ref(false);
 const showResults = ref(false);
 const simulationResult = ref<SimulationResult | null>(null);
+const activeSolutionTab = ref<'work' | 'salary' | 'savings'>('work');
 
 // Populate form with existing data if available
 onMounted(() => {
@@ -140,7 +141,7 @@ onMounted(() => {
             include_sick_leave: props.existingFormData.include_sick_leave
         };
     }
-    
+
     // If there are existing simulation results, show them
     if (props.existingSimulationResults) {
         simulationResult.value = props.existingSimulationResults;
@@ -161,7 +162,7 @@ watch([() => formData.value.age, () => formData.value.gender], () => {
         const currentYear = new Date().getFullYear();
         const age = parseInt(formData.value.age);
         const yearsToRetirement = retirementAge.value - age;
-        
+
         if (yearsToRetirement >= 0) {
             formData.value.retirement_year = (currentYear + yearsToRetirement).toString();
         }
@@ -264,7 +265,7 @@ const validateForm = (): boolean => {
         validateAccountBalance(),
         validateSubaccountBalance()
     ];
-    
+
     return validations.every(v => v);
 };
 
@@ -281,13 +282,13 @@ const formatCurrency = (amount: number): string => {
 // Obsługa wysyłki formularza
 const handleSubmit = async () => {
     errors.value = {};
-    
+
     if (!validateForm()) {
         return;
     }
-    
+
     isSubmitting.value = true;
-    
+
     try {
         const requestBody: any = {
             age: parseInt(formData.value.age),
@@ -317,9 +318,9 @@ const handleSubmit = async () => {
             },
             body: JSON.stringify(requestBody)
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             if (data.errors) {
                 errors.value = data.errors;
@@ -328,15 +329,26 @@ const handleSubmit = async () => {
             }
             return;
         }
-        
+
         simulationResult.value = data;
         showResults.value = true;
-        
+
+        // Set default active tab based on available solutions
+        if (data.expected_pension_comparison?.solutions) {
+            if (data.expected_pension_comparison.solutions.extend_work_period?.additional_years > 0) {
+                activeSolutionTab.value = 'work';
+            } else if (data.expected_pension_comparison.solutions.higher_salary?.required_salary > 0) {
+                activeSolutionTab.value = 'salary';
+            } else if (data.expected_pension_comparison.solutions.investment_savings?.monthly_savings > 0) {
+                activeSolutionTab.value = 'savings';
+            }
+        }
+
         // Przewiń do wyników
         setTimeout(() => {
             document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
-        
+
     } catch (error) {
         console.error('Błąd symulacji:', error);
         toast.error('Wystąpił błąd podczas przetwarzania. Spróbuj ponownie.');
@@ -376,7 +388,7 @@ const getAdvancedDashboardUrl = () => {
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
-    
+
     <div class="min-h-screen bg-white zus-page">
         <!-- Top Header Bar -->
         <header class="bg-white border-b">
@@ -576,7 +588,7 @@ const getAdvancedDashboardUrl = () => {
                         Wypełnij formularz, aby otrzymać spersonalizowaną prognozę
                     </p>
                 </div>
-                
+
                 <form @submit.prevent="handleSubmit" class="space-y-10">
                         <!-- Sekcja: Dane podstawowe -->
                         <div class="space-y-6">
@@ -588,7 +600,7 @@ const getAdvancedDashboardUrl = () => {
                                     Informacje podstawowe
                                 </h3>
                             </div>
-                            
+
                             <div class="grid md:grid-cols-2 gap-6">
                                 <!-- Wiek -->
                                 <div class="space-y-3">
@@ -636,7 +648,7 @@ const getAdvancedDashboardUrl = () => {
                                                 'flex-1 h-14 border-2 font-semibold text-base transition-all duration-300',
                                                 formData.gender === 'male'
                                                     ? 'text-white border-transparent shadow-sm'
-                                                    : 'bg-white border-[rgb(190,195,206)]',
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)]',
                                                 errors.gender ? 'border-[rgb(240,94,94)]' : ''
                                             ]"
                                             :style="formData.gender === 'male' ? 'background-color: rgb(63, 132, 210);' : ''"
@@ -650,7 +662,7 @@ const getAdvancedDashboardUrl = () => {
                                                 'flex-1 h-14 border-2 font-semibold text-base transition-all duration-300',
                                                 formData.gender === 'female'
                                                     ? 'text-white border-transparent shadow-sm'
-                                                    : 'bg-white border-[rgb(190,195,206)]',
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)]',
                                                 errors.gender ? 'border-[rgb(240,94,94)]' : ''
                                             ]"
                                             :style="formData.gender === 'female' ? 'background-color: rgb(63, 132, 210);' : ''"
@@ -749,7 +761,7 @@ const getAdvancedDashboardUrl = () => {
                                     Informacje dodatkowe <span class="text-sm font-normal text-gray-500">(opcjonalnie)</span>
                                 </h3>
                             </div>
-                            
+
                             <div class="grid md:grid-cols-2 gap-6">
                                 <!-- Saldo konta w ZUS -->
                                 <div class="space-y-3">
@@ -931,8 +943,8 @@ const getAdvancedDashboardUrl = () => {
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    <strong>Wysokość rzeczywista</strong> to kwota, którą otrzymasz w przyszłości. 
-                                    <strong>Wysokość urealniona</strong> pokazuje, ile ta emerytura będzie warta w dzisiejszych cenach, 
+                                    <strong>Wysokość rzeczywista</strong> to kwota, którą otrzymasz w przyszłości.
+                                    <strong>Wysokość urealniona</strong> pokazuje, ile ta emerytura będzie warta w dzisiejszych cenach,
                                     uwzględniając inflację i zmiany siły nabywczej pieniądza w okresie {{ simulationResult.years_to_retirement }} lat.
                                 </p>
                             </div>
@@ -942,7 +954,7 @@ const getAdvancedDashboardUrl = () => {
                 <!-- Porównanie z oczekiwaną emeryturą -->
                 <div v-if="simulationResult.expected_pension_comparison" class="space-y-6">
                     <!-- Case 2: BIG GREEN - Exceeds expectations -->
-                    <div v-if="simulationResult.expected_pension_comparison.exceeds_expectations" 
+                    <div v-if="simulationResult.expected_pension_comparison.exceeds_expectations"
                           class="bg-white border border-gray-200 shadow-sm p-8 md:p-12 text-center">
                             <div class="flex justify-center mb-6">
                                 <div class="w-20 h-20 flex items-center justify-center" style="background-color: rgb(0, 153, 63);">
@@ -951,15 +963,15 @@ const getAdvancedDashboardUrl = () => {
                                     </svg>
                                 </div>
                             </div>
-                            
+
                             <h3 class="text-3xl md:text-4xl font-bold mb-4" style="color: rgb(0, 65, 110);">
                                 🎉 Gratulacje!
                             </h3>
-                            
+
                             <div class="text-2xl md:text-3xl font-bold mb-6" style="color: rgb(0, 153, 63);">
                                 Twoje obecne perspektywy przewyższają oczekiwania!
                             </div>
-                            
+
                             <div class="grid md:grid-cols-2 gap-6 mb-6">
                                 <div class="border-2 p-6" style="border-color: rgb(190, 195, 206); background-color: rgba(190, 195, 206, 0.05);">
                                     <div class="text-sm font-semibold mb-2 text-gray-600 uppercase tracking-wide">Oczekiwana emerytura</div>
@@ -967,7 +979,7 @@ const getAdvancedDashboardUrl = () => {
                                         {{ formatCurrency(simulationResult.expected_pension_comparison.expected_pension) }}
                                     </div>
                                 </div>
-                                
+
                                 <div class="border-2 p-6" style="border-color: rgb(0, 153, 63); background-color: rgba(0, 153, 63, 0.05);">
                                     <div class="text-sm font-semibold mb-2 uppercase tracking-wide" style="color: rgb(0, 153, 63);">Prognozowana emerytura</div>
                                     <div class="text-3xl font-bold" style="color: rgb(0, 65, 110);">
@@ -975,7 +987,7 @@ const getAdvancedDashboardUrl = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="border-2 p-6" style="border-color: rgb(0, 153, 63); background-color: rgba(0, 153, 63, 0.05);">
                                 <div class="text-sm font-semibold mb-2 uppercase tracking-wide" style="color: rgb(0, 153, 63);">Różnica</div>
                                 <div class="text-2xl font-bold" style="color: rgb(0, 153, 63);">
@@ -988,7 +1000,7 @@ const getAdvancedDashboardUrl = () => {
                     </div>
 
                     <!-- Case 1: Solutions to achieve expected pension -->
-                    <div v-else class="space-y-6">
+                    <div v-else class="space-y-6 mt-20">
                         <!-- Header -->
                         <div class="bg-white border border-gray-200 shadow-sm p-6 text-center">
                             <div class="w-16 h-16 flex items-center justify-center mx-auto mb-4" style="background-color: rgb(240, 94, 94);">
@@ -1000,16 +1012,169 @@ const getAdvancedDashboardUrl = () => {
                                 Jak osiągnąć oczekiwaną emeryturę?
                             </h3>
                             <p class="text-gray-600 text-lg">
-                                Twoja prognozowana emerytura wynosi {{ formatCurrency(simulationResult.expected_pension_comparison.predicted_pension) }}, 
+                                Twoja prognozowana emerytura wynosi {{ formatCurrency(simulationResult.expected_pension_comparison.predicted_pension) }},
                                 a oczekujesz {{ formatCurrency(simulationResult.expected_pension_comparison.expected_pension) }}.
                             </p>
                             <div class="mt-4 text-xl font-bold" style="color: rgb(240, 94, 94);">
                                 Brakuje: {{ formatCurrency(Math.abs(simulationResult.expected_pension_comparison.difference)) }}
                             </div>
+
+                            <div class="mb-4 flex items-center gap-3 mt-10">
+                                <svg class="w-6 h-6" style="color: rgb(0, 65, 110);" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                                </svg>
+                                <h4 class="text-lg md:text-xl font-bold" style="color: rgb(0, 65, 110);">
+                                    Wybierz scenariusz rozwiązania
+                                </h4>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-4">
+                                Kliknij na jedną z opcji poniżej, aby zobaczyć szczegółowe informacje
+                            </p>
+
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <button
+                                    v-if="simulationResult.expected_pension_comparison.solutions?.extend_work_period?.additional_years > 0"
+                                    @click="activeSolutionTab = 'work'"
+                                    :class="[
+                                        'relative p-5 pt-8 border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group',
+                                        activeSolutionTab === 'work'
+                                            ? 'border-4 shadow-lg scale-105'
+                                            : 'border-3 shadow-md'
+                                    ]"
+                                    :style="activeSolutionTab === 'work'
+                                        ? 'background-color: rgb(63, 132, 210); border-color: rgb(63, 132, 210);'
+                                        : 'background-color: rgba(63, 132, 210, 0.05); border-color: rgb(63, 132, 210);'"
+                                >
+                                    <!-- Badge "Aktywne" -->
+                                    <div v-if="activeSolutionTab === 'work'" class="absolute top-2 left-2 px-3 py-1 text-xs font-bold text-white shadow-md" style="background-color: rgb(0, 153, 63);">
+                                        ✓ WYBRANE
+                                    </div>
+
+                                    <!-- Ikona wskaźnika kliknięcia (tylko dla nieaktywnych) -->
+                                    <div v-else class="absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-5 h-5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex flex-col items-center text-center gap-3">
+                                        <div class="w-16 h-16 flex items-center justify-center"
+                                             :style="activeSolutionTab === 'work'
+                                                ? 'background-color: rgba(255,255,255,0.2);'
+                                                : 'background-color: rgba(63, 132, 210, 0.1);'">
+                                            <svg class="w-10 h-10" :style="activeSolutionTab === 'work' ? 'color: white;' : 'color: rgb(63, 132, 210);'" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-base md:text-lg mb-1" :style="activeSolutionTab === 'work' ? 'color: white;' : 'color: rgb(0, 65, 110);'">
+                                                Przedłużenie okresu pracy
+                                            </div>
+                                            <div class="text-sm font-semibold" :style="activeSolutionTab === 'work' ? 'color: rgba(255,255,255,0.9);' : 'color: rgb(63, 132, 210);'">
+                                                +{{ simulationResult.expected_pension_comparison.solutions.extend_work_period.additional_years }} {{ simulationResult.expected_pension_comparison.solutions.extend_work_period.additional_years === 1 ? 'rok' : 'lata' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button
+                                    v-if="simulationResult.expected_pension_comparison.solutions?.higher_salary?.required_salary > 0"
+                                    @click="activeSolutionTab = 'salary'"
+                                    :class="[
+                                        'relative p-5 pt-8 border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group',
+                                        activeSolutionTab === 'salary'
+                                            ? 'border-4 shadow-lg scale-105'
+                                            : 'border-3 shadow-md'
+                                    ]"
+                                    :style="activeSolutionTab === 'salary'
+                                        ? 'background-color: rgb(0, 153, 63); border-color: rgb(0, 153, 63);'
+                                        : 'background-color: rgba(0, 153, 63, 0.05); border-color: rgb(0, 153, 63);'"
+                                >
+                                    <!-- Badge "Aktywne" -->
+                                    <div v-if="activeSolutionTab === 'salary'" class="absolute top-2 left-2 px-3 py-1 text-xs font-bold text-white shadow-md" style="background-color: rgb(63, 132, 210);">
+                                        ✓ WYBRANE
+                                    </div>
+
+                                    <!-- Ikona wskaźnika kliknięcia (tylko dla nieaktywnych) -->
+                                    <div v-else class="absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex flex-col items-center text-center gap-3">
+                                        <div class="w-16 h-16 flex items-center justify-center"
+                                             :style="activeSolutionTab === 'salary'
+                                                ? 'background-color: rgba(255,255,255,0.2);'
+                                                : 'background-color: rgba(0, 153, 63, 0.1);'">
+                                            <svg class="w-10 h-10" :style="activeSolutionTab === 'salary' ? 'color: white;' : 'color: rgb(0, 153, 63);'" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-base md:text-lg mb-1" :style="activeSolutionTab === 'salary' ? 'color: white;' : 'color: rgb(0, 65, 110);'">
+                                                Wyższe wynagrodzenie
+                                            </div>
+                                            <div class="text-sm font-semibold" :style="activeSolutionTab === 'salary' ? 'color: rgba(255,255,255,0.9);' : 'color: rgb(0, 153, 63);'">
+                                                +{{ ((simulationResult.expected_pension_comparison.solutions.higher_salary.percentage_increase || 0)).toFixed(0) }}% wzrost
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button
+                                    v-if="simulationResult.expected_pension_comparison.solutions?.investment_savings?.monthly_savings > 0"
+                                    @click="activeSolutionTab = 'savings'"
+                                    :class="[
+                                        'relative p-5 pt-8 border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group',
+                                        activeSolutionTab === 'savings'
+                                            ? 'border-4 shadow-lg scale-105'
+                                            : 'border-3 shadow-md'
+                                    ]"
+                                    :style="activeSolutionTab === 'savings'
+                                        ? 'background-color: rgb(255, 179, 79); border-color: rgb(255, 179, 79);'
+                                        : 'background-color: rgba(255, 179, 79, 0.05); border-color: rgb(255, 179, 79);'"
+                                >
+                                    <!-- Badge "Aktywne" -->
+                                    <div v-if="activeSolutionTab === 'savings'" class="absolute top-2 left-2 px-3 py-1 text-xs font-bold text-white shadow-md" style="background-color: rgb(0, 153, 63);">
+                                        ✓ WYBRANE
+                                    </div>
+
+                                    <!-- Ikona wskaźnika kliknięcia (tylko dla nieaktywnych) -->
+                                    <div v-else class="absolute top-2 right-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-5 h-5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex flex-col items-center text-center gap-3">
+                                        <div class="w-16 h-16 flex items-center justify-center"
+                                             :style="activeSolutionTab === 'savings'
+                                                ? 'background-color: rgba(255,255,255,0.2);'
+                                                : 'background-color: rgba(255, 179, 79, 0.1);'">
+                                            <svg class="w-10 h-10" :style="activeSolutionTab === 'savings' ? 'color: white;' : 'color: rgb(255, 179, 79);'" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                                <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-base md:text-lg mb-1" :style="activeSolutionTab === 'savings' ? 'color: white;' : 'color: rgb(0, 65, 110);'">
+                                                Oszczędności i inwestycje
+                                            </div>
+                                            <div class="text-sm font-semibold" :style="activeSolutionTab === 'savings' ? 'color: rgba(255,255,255,0.9);' : 'color: rgb(255, 179, 79);'">
+                                                {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.investment_savings.monthly_savings) }}/mies.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- Tab Content -->
                         <!-- Solution 1: Extend work period -->
-                        <div v-if="simulationResult.expected_pension_comparison.solutions?.extend_work_period?.additional_years > 0" 
+                        <div v-if="simulationResult.expected_pension_comparison.solutions?.extend_work_period?.additional_years > 0 && activeSolutionTab === 'work'"
                               class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
                             <div class="mb-6">
                                 <h4 class="text-2xl font-bold flex items-center gap-3" style="color: rgb(0, 65, 110);">
@@ -1028,14 +1193,14 @@ const getAdvancedDashboardUrl = () => {
                                         </div>
                                         <div class="text-sm text-gray-600">Dodatkowych lat pracy</div>
                                     </div>
-                                    
+
                                     <div class="border-2 p-5 text-center" style="border-color: rgb(190, 195, 206); background-color: rgba(190, 195, 206, 0.05);">
                                         <div class="text-2xl font-bold mb-2" style="color: rgb(0, 65, 110);">
                                             {{ simulationResult.expected_pension_comparison.solutions.extend_work_period.new_retirement_year }}
                                         </div>
                                         <div class="text-sm text-gray-600">Nowy rok emerytury</div>
                                     </div>
-                                    
+
                                     <div class="border-2 p-5 text-center" style="border-color: rgb(0, 153, 63); background-color: rgba(0, 153, 63, 0.05);">
                                         <div class="text-2xl font-bold mb-2" style="color: rgb(0, 153, 63);">
                                             {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.extend_work_period.new_monthly_pension) }}
@@ -1043,14 +1208,14 @@ const getAdvancedDashboardUrl = () => {
                                         <div class="text-sm text-gray-600">Nowa emerytura</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="border-l-4 p-5" style="background-color: rgba(63, 132, 210, 0.1); border-color: rgb(63, 132, 210);">
                                     <div class="flex items-start gap-3">
                                         <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                         </svg>
                                         <p class="text-sm text-gray-700 leading-relaxed">
-                                            <strong>Jak to działa:</strong> Pracując dłużej, zwiększasz zgromadzony kapitał emerytalny (dodatkowe składki) 
+                                            <strong>Jak to działa:</strong> Pracując dłużej, zwiększasz zgromadzony kapitał emerytalny (dodatkowe składki)
                                             oraz skracasz statystyczny okres pobierania emerytury, co przekłada się na wyższe miesięczne świadczenie.
                                         </p>
                                     </div>
@@ -1058,7 +1223,7 @@ const getAdvancedDashboardUrl = () => {
                         </div>
 
                         <!-- Solution 2: Higher salary -->
-                        <div v-if="simulationResult.expected_pension_comparison.solutions?.higher_salary?.required_salary > 0" 
+                        <div v-if="simulationResult.expected_pension_comparison.solutions?.higher_salary?.required_salary > 0 && activeSolutionTab === 'salary'"
                               class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
                             <div class="mb-6">
                                 <h4 class="text-2xl font-bold flex items-center gap-3" style="color: rgb(0, 65, 110);">
@@ -1078,14 +1243,14 @@ const getAdvancedDashboardUrl = () => {
                                         </div>
                                         <div class="text-sm text-gray-600">Wymagane wynagrodzenie</div>
                                     </div>
-                                    
+
                                     <div class="bg-white p-5 border border-[rgb(190,195,206)] text-center">
                                         <div class="text-2xl font-bold text-[rgb(0,65,110)] mb-2">
                                             +{{ formatCurrency(simulationResult.expected_pension_comparison.solutions.higher_salary.salary_increase) }}
                                         </div>
                                         <div class="text-sm text-gray-600">Wzrost wynagrodzenia</div>
                                     </div>
-                                    
+
                                     <div class="bg-white p-5 border border-[rgb(190,195,206)] text-center">
                                         <div class="text-2xl font-bold text-[rgb(240,94,94)] mb-2">
                                             +{{ simulationResult.expected_pension_comparison.solutions.higher_salary.percentage_increase.toFixed(1) }}%
@@ -1093,14 +1258,14 @@ const getAdvancedDashboardUrl = () => {
                                         <div class="text-sm text-gray-600">Procentowy wzrost</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="border-l-4 p-5" style="background-color: rgba(0, 153, 63, 0.1); border-color: rgb(0, 153, 63);">
                                     <div class="flex items-start gap-3">
                                         <svg class="w-6 h-6 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                         </svg>
                                         <p class="text-sm text-gray-700 leading-relaxed">
-                                            <strong>Jak to działa:</strong> Wyższe wynagrodzenie oznacza wyższe składki emerytalne, 
+                                            <strong>Jak to działa:</strong> Wyższe wynagrodzenie oznacza wyższe składki emerytalne,
                                             które są podstawą do obliczenia przyszłej emerytury. Im wyższe składki, tym wyższa emerytura.
                                         </p>
                                     </div>
@@ -1108,7 +1273,7 @@ const getAdvancedDashboardUrl = () => {
                         </div>
 
                         <!-- Solution 3: Investment savings -->
-                        <div v-if="simulationResult.expected_pension_comparison.solutions?.investment_savings?.monthly_savings > 0" 
+                        <div v-if="simulationResult.expected_pension_comparison.solutions?.investment_savings?.monthly_savings > 0 && activeSolutionTab === 'savings'"
                               class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
                             <div class="mb-6">
                                 <h4 class="text-2xl font-bold flex items-center gap-3" style="color: rgb(0, 65, 110);">
@@ -1128,21 +1293,21 @@ const getAdvancedDashboardUrl = () => {
                                         </div>
                                         <div class="text-xs text-gray-600">Miesięczne oszczędności</div>
                                     </div>
-                                    
+
                                     <div class="border-2 p-4 text-center" style="border-color: rgb(190, 195, 206); background-color: rgba(190, 195, 206, 0.05);">
                                         <div class="text-xl font-bold mb-1" style="color: rgb(0, 65, 110);">
                                             {{ simulationResult.expected_pension_comparison.solutions.investment_savings.percentage_of_salary.toFixed(1) }}%
                                         </div>
                                         <div class="text-xs text-gray-600">Od wynagrodzenia</div>
                                     </div>
-                                    
+
                                     <div class="border-2 p-4 text-center" style="border-color: rgb(0, 153, 63); background-color: rgba(0, 153, 63, 0.05);">
                                         <div class="text-xl font-bold mb-1" style="color: rgb(0, 153, 63);">
                                             {{ simulationResult.expected_pension_comparison.solutions.investment_savings.investment_return_rate.toFixed(1) }}%
                                         </div>
                                         <div class="text-xs text-gray-600">Roczny zwrot</div>
                                     </div>
-                                    
+
                                     <div class="border-2 p-4 text-center" style="border-color: rgb(63, 132, 210); background-color: rgba(63, 132, 210, 0.05);">
                                         <div class="text-lg font-bold mb-1" style="color: rgb(63, 132, 210);">
                                             {{ formatCurrency(simulationResult.expected_pension_comparison.solutions.investment_savings.total_investment_needed) }}
@@ -1150,15 +1315,15 @@ const getAdvancedDashboardUrl = () => {
                                         <div class="text-xs text-gray-600">Łączna kwota</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="border-l-4 p-5" style="background-color: rgba(255, 179, 79, 0.1); border-color: rgb(255, 179, 79);">
                                     <div class="flex items-start gap-3">
                                         <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                         </svg>
                                         <p class="text-sm text-gray-700 leading-relaxed">
-                                            <strong>Jak to działa:</strong> Oszczędzając i inwestując {{ simulationResult.expected_pension_comparison.solutions.investment_savings.percentage_of_salary.toFixed(1) }}% 
-                                            swojego wynagrodzenia z rocznym zwrotem {{ simulationResult.expected_pension_comparison.solutions.investment_savings.investment_return_rate.toFixed(1) }}% powyżej inflacji, 
+                                            <strong>Jak to działa:</strong> Oszczędzając i inwestując {{ simulationResult.expected_pension_comparison.solutions.investment_savings.percentage_of_salary.toFixed(1) }}%
+                                            swojego wynagrodzenia z rocznym zwrotem {{ simulationResult.expected_pension_comparison.solutions.investment_savings.investment_return_rate.toFixed(1) }}% powyżej inflacji,
                                             zgromadzisz wystarczające środki, aby uzupełnić różnicę między prognozowaną a oczekiwaną emeryturą.
                                         </p>
                                     </div>
@@ -1168,7 +1333,7 @@ const getAdvancedDashboardUrl = () => {
                 </div>
 
                 <!-- Szczegóły -->
-                <div class="grid md:grid-cols-2 gap-6">
+                <div class="grid md:grid-cols-2 gap-6 mt-30">
                     <div class="bg-white border border-gray-200 shadow-sm p-6 lg:p-8">
                         <div class="mb-4">
                             <h4 class="text-xl font-bold flex items-center gap-2" style="color: rgb(0, 65, 110);">
@@ -1240,8 +1405,8 @@ const getAdvancedDashboardUrl = () => {
                                         <span class="text-lg text-gray-600">Twojego wynagrodzenia</span>
                                     </div>
                                     <p class="text-sm text-gray-600 mt-3 leading-relaxed">
-                                        Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong> 
-                                        ostatniego wynagrodzenia przed przejściem na emeryturę 
+                                        Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong>
+                                        ostatniego wynagrodzenia przed przejściem na emeryturę
                                         ({{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}).
                                     </p>
                                 </div>
@@ -1283,13 +1448,13 @@ const getAdvancedDashboardUrl = () => {
                                     </div>
                                     <p class="text-sm text-gray-600 mt-3 leading-relaxed">
                                         <template v-if="simulationResult.economic_context.pension_to_average_ratio > 100">
-                                            Twoja prognozowana emerytura będzie <strong>wyższa</strong> o 
-                                            <strong>{{ (simulationResult.economic_context.pension_to_average_ratio - 100).toFixed(0) }}%</strong> 
+                                            Twoja prognozowana emerytura będzie <strong>wyższa</strong> o
+                                            <strong>{{ (simulationResult.economic_context.pension_to_average_ratio - 100).toFixed(0) }}%</strong>
                                             od prognozowanej średniej emerytury w Polsce w {{ formData.retirement_year }} roku.
                                         </template>
                                         <template v-else-if="simulationResult.economic_context.pension_to_average_ratio < 100">
-                                            Twoja prognozowana emerytura będzie <strong>niższa</strong> o 
-                                            <strong>{{ (100 - simulationResult.economic_context.pension_to_average_ratio).toFixed(0) }}%</strong> 
+                                            Twoja prognozowana emerytura będzie <strong>niższa</strong> o
+                                            <strong>{{ (100 - simulationResult.economic_context.pension_to_average_ratio).toFixed(0) }}%</strong>
                                             od prognozowanej średniej emerytury w Polsce w {{ formData.retirement_year }} roku.
                                         </template>
                                         <template v-else>
@@ -1372,7 +1537,7 @@ const getAdvancedDashboardUrl = () => {
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    Prognozy bazują na oficjalnych danych ZUS ({{ simulationResult.economic_context.variant_name }}), 
+                                    Prognozy bazują na oficjalnych danych ZUS ({{ simulationResult.economic_context.variant_name }}),
                                     uwzględniających realistyczne scenariusze rozwoju gospodarczego Polski do roku {{ formData.retirement_year }}.
                                 </p>
                             </div>
@@ -1405,7 +1570,7 @@ const getAdvancedDashboardUrl = () => {
                                 </div>
                                 <p class="text-xs text-gray-600">Przy idealnej frekwencji</p>
                             </div>
-                            
+
                             <div class="border-2 p-5" style="border-color: rgb(240, 94, 94); background-color: rgba(240, 94, 94, 0.05);">
                                 <div class="flex items-center gap-2 mb-3">
                                     <svg class="w-5 h-5" style="color: rgb(240, 94, 94);" fill="currentColor" viewBox="0 0 20 20">
@@ -1417,7 +1582,7 @@ const getAdvancedDashboardUrl = () => {
                                     {{ formatCurrency(simulationResult.monthly_pension) }}
                                 </div>
                                 <p class="text-xs text-gray-600">
-                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }} 
+                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }}
                                     ({{ simulationResult.sick_leave_impact.percentage_reduction.toFixed(2) }}%)
                                 </p>
                             </div>
@@ -1443,16 +1608,16 @@ const getAdvancedDashboardUrl = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="border-l-4 p-5" style="background-color: rgba(255, 179, 79, 0.1); border-color: rgb(255, 179, 79);">
                             <div class="flex items-start gap-3">
                                 <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
-                                    (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce 
-                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni, 
+                                    <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości
+                                    (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce
+                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni,
                                     co realnie wpływa na wysokość przyszłej emerytury.
                                     <template v-if="formData.include_sick_leave">
                                         <br><br><strong>W Twojej symulacji uwzględniono zwolnienia lekarskie.</strong>
@@ -1480,7 +1645,7 @@ const getAdvancedDashboardUrl = () => {
                         <p class="text-gray-700 mb-6 leading-relaxed">
                             Sprawdź, o ile wzrośnie Twoja emerytura, jeśli zdecydujesz się pracować dłużej po osiągnięciu wieku emerytalnego.
                         </p>
-                        
+
                         <div class="space-y-4">
                             <div v-for="option in simulationResult.delayed_retirement_options" :key="option.delay_years"
                                 class="border-2 p-5 transition-all duration-300" style="border-color: rgb(63, 132, 210); background-color: rgba(63, 132, 210, 0.02);">
@@ -1525,8 +1690,8 @@ const getAdvancedDashboardUrl = () => {
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                    <strong>Dlaczego warto odroczyć emeryturę?</strong> Pracując dłużej zwiększasz zgromadzony kapitał emerytalny 
-                                    (dodatkowe składki) oraz skracasz statystyczny okres pobierania emerytury, co przekłada się na wyższe miesięczne świadczenie. 
+                                    <strong>Dlaczego warto odroczyć emeryturę?</strong> Pracując dłużej zwiększasz zgromadzony kapitał emerytalny
+                                    (dodatkowe składki) oraz skracasz statystyczny okres pobierania emerytury, co przekłada się na wyższe miesięczne świadczenie.
                                     Dodatkowo emerytury rosną wraz ze wzrostem wynagrodzeń w gospodarce.
                                 </p>
                             </div>
