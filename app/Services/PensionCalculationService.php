@@ -10,51 +10,12 @@ namespace App\Services;
  * - Obliczania składek emerytalnych
  * - Waloryzacji środków
  * - Analizy wpływu zwolnień lekarskich
+ * 
+ * Wszystkie parametry są konfigurowalne przez config/pension.php
+ * i mogą być nadpisane przez zmienne środowiskowe (.env)
  */
 class PensionCalculationService
 {
-    /**
-     * Stawka składki emerytalnej (19.52% wynagrodzenia brutto)
-     */
-    private const PENSION_CONTRIBUTION_RATE = 0.1952;
-
-    /**
-     * Średni roczny wzrost wynagrodzeń w Polsce (5%)
-     */
-    private const AVERAGE_WAGE_GROWTH = 0.05;
-
-    /**
-     * Stopa waloryzacji składek emerytalnych (5% rocznie)
-     */
-    private const VALORIZATION_RATE = 0.05;
-
-    /**
-     * Wiek rozpoczęcia pracy (domyślnie 25 lat)
-     */
-    private const DEFAULT_WORK_START_AGE = 25;
-
-    /**
-     * Oczekiwana długość życia po emeryturze w latach
-     */
-    private const LIFE_EXPECTANCY_FEMALE = 25;
-    private const LIFE_EXPECTANCY_MALE = 20;
-
-    /**
-     * Średnia liczba dni zwolnienia lekarskiego rocznie
-     */
-    private const SICK_DAYS_PER_YEAR_FEMALE = 12;
-    private const SICK_DAYS_PER_YEAR_MALE = 9;
-
-    /**
-     * Liczba dni roboczych w roku
-     */
-    private const WORKING_DAYS_PER_YEAR = 250;
-
-    /**
-     * Procent utraty składki podczas zwolnienia (80%)
-     */
-    private const SICK_LEAVE_CONTRIBUTION_LOSS = 0.8;
-
     /**
      * Oblicza prognozowaną emeryturę na podstawie danych użytkownika
      *
@@ -81,7 +42,8 @@ class PensionCalculationService
 
         // Oszacuj salda, jeśli nie podano
         if ($accountBalance === null) {
-            $estimatedYearsWorked = max(0, $age - self::DEFAULT_WORK_START_AGE);
+            $workStartAge = (int) config('pension.calculation.default_work_start_age', 25);
+            $estimatedYearsWorked = max(0, $age - $workStartAge);
             $accountBalance = $this->estimateAccountBalance(
                 $grossSalary,
                 $estimatedYearsWorked
@@ -127,13 +89,16 @@ class PensionCalculationService
 
     /**
      * Zwraca wiek emerytalny w zależności od płci
+     * 
+     * Wartości są pobierane z konfiguracji (config/pension.php)
+     * i mogą być nadpisane przez zmienne środowiskowe.
      *
      * @param string $gender Płeć (male/female)
      * @return int Wiek emerytalny
      */
     public function getRetirementAge(string $gender): int
     {
-        return $gender === 'male' ? 65 : 60;
+        return (int) config("pension.retirement_age.{$gender}", $gender === 'male' ? 65 : 60);
     }
 
     /**
@@ -149,6 +114,10 @@ class PensionCalculationService
             return 0;
         }
 
+        $contributionRate = (float) config('pension.calculation.contribution_rate', 0.1952);
+        $wageGrowth = (float) config('pension.calculation.average_wage_growth', 0.05);
+        $valorizationRate = (float) config('pension.calculation.valorization_rate', 0.05);
+
         $totalBalance = 0;
 
         // Rekonstrukcja historii wynagrodzeń i składek
@@ -156,13 +125,13 @@ class PensionCalculationService
             $yearsAgo = $yearsWorked - $i;
             
             // Wynagrodzenie w danym roku (odwrócona projekcja wzrostu)
-            $historicalSalary = $currentSalary / pow(1 + self::AVERAGE_WAGE_GROWTH, $yearsAgo);
+            $historicalSalary = $currentSalary / pow(1 + $wageGrowth, $yearsAgo);
             
             // Roczna składka
-            $yearlyContribution = $historicalSalary * self::PENSION_CONTRIBUTION_RATE * 12;
+            $yearlyContribution = $historicalSalary * $contributionRate * 12;
             
             // Waloryzacja składki do dnia dzisiejszego
-            $valorizedContribution = $yearlyContribution * pow(1 + self::VALORIZATION_RATE, $yearsAgo);
+            $valorizedContribution = $yearlyContribution * pow(1 + $valorizationRate, $yearsAgo);
             
             $totalBalance += $valorizedContribution;
         }
@@ -174,11 +143,12 @@ class PensionCalculationService
      * Szacuje saldo subkonta na podstawie salda głównego konta
      *
      * @param float $accountBalance Saldo głównego konta
-     * @return float Szacowane saldo subkonta (25% głównego konta)
+     * @return float Szacowane saldo subkonta (domyślnie 25% głównego konta)
      */
     private function estimateSubaccountBalance(float $accountBalance): float
     {
-        return $accountBalance * 0.25;
+        $percentage = (float) config('pension.calculation.subaccount_percentage', 0.25);
+        return $accountBalance * $percentage;
     }
 
     /**
@@ -190,14 +160,17 @@ class PensionCalculationService
      */
     private function calculateFutureContributions(float $currentSalary, int $years): float
     {
+        $contributionRate = (float) config('pension.calculation.contribution_rate', 0.1952);
+        $wageGrowth = (float) config('pension.calculation.average_wage_growth', 0.05);
+        
         $totalContributions = 0;
 
         for ($i = 1; $i <= $years; $i++) {
             // Prognozowane wynagrodzenie za i lat
-            $futureSalary = $currentSalary * pow(1 + self::AVERAGE_WAGE_GROWTH, $i);
+            $futureSalary = $currentSalary * pow(1 + $wageGrowth, $i);
             
             // Roczna składka
-            $yearlyContribution = $futureSalary * self::PENSION_CONTRIBUTION_RATE * 12;
+            $yearlyContribution = $futureSalary * $contributionRate * 12;
             
             $totalContributions += $yearlyContribution;
         }
@@ -213,9 +186,10 @@ class PensionCalculationService
      */
     private function getLifeExpectancyMonths(string $gender): int
     {
-        $yearsLifeExpectancy = $gender === 'female' 
-            ? self::LIFE_EXPECTANCY_FEMALE 
-            : self::LIFE_EXPECTANCY_MALE;
+        $yearsLifeExpectancy = (int) config(
+            "pension.calculation.life_expectancy.{$gender}",
+            $gender === 'female' ? 25 : 20
+        );
             
         return $yearsLifeExpectancy * 12;
     }
@@ -235,26 +209,31 @@ class PensionCalculationService
         int $currentAge,
         float $monthlyPension
     ): array {
+        $workStartAge = (int) config('pension.calculation.default_work_start_age', 25);
+        $workingDaysPerYear = (int) config('pension.calculation.working_days_per_year', 250);
+        $sickLeaveContributionLoss = (float) config('pension.calculation.sick_leave_contribution_loss', 0.8);
+        
         // Średnia liczba dni zwolnienia rocznie
-        $sickDaysPerYear = $gender === 'female' 
-            ? self::SICK_DAYS_PER_YEAR_FEMALE 
-            : self::SICK_DAYS_PER_YEAR_MALE;
+        $sickDaysPerYear = (int) config(
+            "pension.calculation.sick_days_per_year.{$gender}",
+            $gender === 'female' ? 12 : 9
+        );
 
         // Całkowity staż pracy (dotychczasowy + przyszły)
-        $yearsWorked = max(0, $currentAge - self::DEFAULT_WORK_START_AGE);
+        $yearsWorked = max(0, $currentAge - $workStartAge);
         $totalYearsWorked = $yearsWorked + $yearsToRetirement;
         
         // Łączna liczba dni zwolnienia
         $totalSickDays = $sickDaysPerYear * $totalYearsWorked;
         
         // Łączna liczba dni roboczych
-        $totalWorkingDays = self::WORKING_DAYS_PER_YEAR * $totalYearsWorked;
+        $totalWorkingDays = $workingDaysPerYear * $totalYearsWorked;
         
         // Procent utraty składek
         $contributionLossPercentage = ($totalSickDays / $totalWorkingDays) * 100;
         
-        // Efektywna strata (80% wartości składki podczas zwolnienia)
-        $effectiveLoss = $contributionLossPercentage * self::SICK_LEAVE_CONTRIBUTION_LOSS;
+        // Efektywna strata
+        $effectiveLoss = $contributionLossPercentage * $sickLeaveContributionLoss;
         
         // Obniżenie miesięcznej emerytury
         $pensionReduction = $monthlyPension * ($effectiveLoss / 100);
@@ -266,4 +245,3 @@ class PensionCalculationService
         ];
     }
 }
-
