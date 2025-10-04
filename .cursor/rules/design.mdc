@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+
+
+Tworząc widoki frontendowe postępuj według następujących instrukcji:
+
+
+## Kolorystyka
+
+Kolory powinny być zgodne z Księgą Znaku ZUS (lub zbliżone):
+- R: 255; G:179; B:79
+- R: 0; G: 153; B: 63
+- R: 190; G: 195; B: 206
+- R: 63; G: 132; B: 210
+- R: 0: G: 65; B: 110
+- R: 240; G: 94; B: 94
+- R: 0; G: 0; B: 0
+
+## UI/UX
+
+Interfejs użytkownika powinien być maksymalnie intuicyjny i prosty w obsłudze. Należy założyć, że z aplikacji będą korzystać również osoby starsze, dlatego widoki muszą być przejrzyste, czytelne i oparte na zrozumiałych ikonach oraz dużych elementach interaktywnych. Projekt powinien minimalizować liczbę kroków potrzebnych do wykonania podstawowych czynności i unikać zbędnych komplikacji.
+
+### Standard WCAG 2.0
+
+Musi spełniać standard WCAG 2.0

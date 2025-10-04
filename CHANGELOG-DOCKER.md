@@ -37,11 +37,21 @@ git config --global --add safe.directory /var/www/html
 
 ### 📝 Zmiany w plikach
 
+#### `Dockerfile.dev`
+- **KRYTYCZNE**: Zmieniono bazowy obraz z `php:8.2-cli-alpine` na `php:8.2-cli` (Debian)
+- Powód: Alpine (musl) nie ma natywnych binariów dla lightningcss, które wymaga Tailwind CSS v4
+- Debian (glibc) ma pełne wsparcie dla wszystkich pakietów Node.js
+
 #### `docker-compose.dev.yml`
 - Dodano konfigurację Git safe.directory
+- **Usunięto anonimowe volumes** (`/var/www/html/node_modules` i `/var/www/html/vendor`)
+- Zmieniono kolejność: **npm install przed composer install**
+- Dodano flagę `--no-scripts` dla composer install
 - Poprawiono skrypt startowy z lepszym logowaniem
-- Dodano flagę `--no-interaction` dla composer
-- Usunięto atrybut `version`
+- Usunięto przestarzały atrybut `version`
+
+#### `vite.config.ts`
+- Poprawiono import wayfinder z `default` na `named export`: `import { wayfinder } from '@laravel/vite-plugin-wayfinder'`
 
 #### `Makefile`
 - Zmieniono `docker-compose` na `docker compose` we wszystkich komendach
