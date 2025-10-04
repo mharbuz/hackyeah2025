@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import AppLogo from '@/components/AppLogo.vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -56,7 +54,7 @@ const isCurrentRoute = computed(
 const activeItemStyles = computed(
     () => (url: NonNullable<InertiaLinkProps['href']>) =>
         isCurrentRoute.value(toUrl(url))
-            ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
+            ? 'text-primary bg-primary/10 dark:bg-primary/20 dark:text-primary'
             : '',
 );
 
@@ -66,17 +64,27 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Symulacja Emerytury',
+        href: '/pension-simulation',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Prognoza Emerytury',
+        href: '/pension-forecast',
+        icon: LayoutGrid,
+    },
 ];
 
 const rightNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
+        title: 'ZUS Portal',
+        href: 'https://www.zus.pl',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: 'Pomoc',
+        href: 'https://www.zus.pl/pomoc',
         icon: BookOpen,
     },
 ];
@@ -84,7 +92,7 @@ const rightNavItems: NavItem[] = [
 
 <template>
     <div>
-        <div class="border-b border-sidebar-border/80">
+        <div class="border-b border-sidebar-border/80 bg-white shadow-sm">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
                 <div class="lg:hidden">
@@ -103,8 +111,10 @@ const rightNavItems: NavItem[] = [
                                 >Navigation Menu</SheetTitle
                             >
                             <SheetHeader class="flex justify-start text-left">
-                                <AppLogoIcon
-                                    class="size-6 fill-current text-black dark:text-white"
+                                <img 
+                                    src="/zus-logo.svg" 
+                                    alt="ZUS Logo" 
+                                    class="h-6 w-auto"
                                 />
                             </SheetHeader>
                             <div
@@ -148,8 +158,12 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="dashboard()" class="flex items-center gap-x-2">
-                    <AppLogo />
+                <Link :href="dashboard()" class="flex items-center">
+                    <img 
+                        src="/zus-logo.svg" 
+                        alt="ZUS Logo" 
+                        class="h-8 w-auto"
+                    />
                 </Link>
 
                 <!-- Desktop Menu -->
@@ -180,7 +194,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>

@@ -248,8 +248,12 @@ const getPensionSimulationUrl = () => {
         >
             <nav class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="bg-white rounded-lg px-4 py-2 font-bold text-[rgb(0,65,110)] text-xl">
-                        ZUS
+                    <div class="bg-white rounded-lg px-4 py-2">
+                        <img 
+                            src="/zus-logo.svg" 
+                            alt="ZUS Logo" 
+                            class="h-8 w-auto"
+                        />
                     </div>
                     <h1 class="text-white text-2xl font-semibold hidden lg:block">Symulator Emerytury</h1>
                 </div>

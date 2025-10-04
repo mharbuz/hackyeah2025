@@ -483,9 +483,11 @@ onMounted(() => {
                 <nav class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <Link :href="home()" class="group flex items-center gap-3 bg-white rounded-xl px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                            <div class="w-8 h-8 bg-gradient-to-br from-[rgb(0,65,110)] to-[rgb(63,132,210)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                ZUS
-                            </div>
+                            <img 
+                                src="/zus-logo.svg" 
+                                alt="ZUS Logo" 
+                                class="h-8 w-auto"
+                            />
                             <span class="font-bold text-[rgb(0,65,110)] text-lg hidden sm:block">Symulator</span>
                         </Link>
                         <div class="hidden md:block">

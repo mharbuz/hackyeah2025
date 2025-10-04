@@ -15,7 +15,6 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
-import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
@@ -23,17 +22,27 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Symulacja Emerytury',
+        href: '/pension-simulation',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Prognoza Emerytury',
+        href: '/pension-forecast',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
+        title: 'ZUS Portal',
+        href: 'https://www.zus.pl',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: 'Pomoc',
+        href: 'https://www.zus.pl/pomoc',
         icon: BookOpen,
     },
 ];
@@ -45,8 +54,12 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
-                            <AppLogo />
+                        <Link :href="dashboard()" class="flex items-center">
+                            <img 
+                                src="/zus-logo.svg" 
+                                alt="ZUS Logo" 
+                                class="h-8 w-auto"
+                            />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
