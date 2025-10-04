@@ -74,7 +74,7 @@ const pensionGroups = [
 
 // Stan komponentu
 const desiredPension = ref<number | null>(null);
-const inputValue = ref('');
+const inputValue = ref('3600');
 const hoveredGroup = ref<number | null>(null);
 const currentFunFact = ref('');
 const showResults = ref(false);
@@ -171,6 +171,12 @@ const fetchRandomFact = async () => {
 
 // Obsługa formularza
 const handleSubmit = async () => {
+    // Nie pozwalaj na tworzenie nowej sesji gdy oglądamy udostępnioną sesję
+    if (isSharedSession.value) {
+        console.warn('Nie można utworzyć nowej sesji podczas oglądania udostępnionej sesji');
+        return;
+    }
+    
     const value = parseFloat(inputValue.value);
     if (value && value > 0) {
         isCreatingSession.value = true;
@@ -212,6 +218,17 @@ const copyShareLink = async () => {
             console.error('Błąd podczas kopiowania linku:', error);
         }
     }
+};
+
+// Funkcja do generowania URL symulacji z zachowaniem parametru sesji
+const getPensionSimulationUrl = () => {
+    const currentSessionUuid = sessionUuid.value || (props.sharedSession?.uuid);
+    
+    if (currentSessionUuid) {
+        return `/symulacja-emerytury?session=${currentSessionUuid}`;
+    }
+    
+    return '/symulacja-emerytury';
 };
 </script>
 
@@ -330,7 +347,7 @@ const copyShareLink = async () => {
                     <!-- Przycisk do symulacji przyszłej emerytury -->
                     <div class="border-t-2 border-gray-100 pt-6">
                         <Link
-                            :href="pensionSimulation.index()"
+                            :href="getPensionSimulationUrl()"
                             class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 px-8 py-4 text-xl font-bold text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                         >
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -531,7 +548,7 @@ const copyShareLink = async () => {
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
-                            :href="register()"
+                            :href="getPensionSimulationUrl()"
                             class="inline-block rounded-xl bg-[rgb(0,153,63)] px-8 py-4 text-xl font-semibold text-white hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl"
                         >
                             <span v-if="!isSharedSession">Zacznij planować swoją przyszłość</span>

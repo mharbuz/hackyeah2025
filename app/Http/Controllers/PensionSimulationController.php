@@ -6,6 +6,8 @@ use App\Models\PensionSession;
 use App\Http\Requests\PensionSimulationRequest;
 use App\Services\PensionCalculationService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,11 +39,41 @@ class PensionSimulationController extends Controller
     /**
      * Wyświetla formularz symulacji emerytury
      *
-     * @return Response Widok Inertia z formularzem
+     * @param Request $request
+     * @return Response|RedirectResponse Widok Inertia z formularzem lub przekierowanie
      */
-    public function index(): Response
+    public function index(Request $request): Response|RedirectResponse
     {
-        return Inertia::render('PensionSimulation');
+        $sessionUuid = $request->query('session');
+        
+        // If session parameter exists, validate it
+        if ($sessionUuid) {
+            $session = PensionSession::where('uuid', $sessionUuid)
+                ->notExpired()
+                ->first();
+
+            // If session doesn't exist, is expired, or doesn't have pension_value, redirect to homepage
+            if (!$session || !$session->pension_value) {
+                return redirect()->route('home');
+            }
+
+            // If session has form data, pass it to the frontend
+            if ($session->form_data) {
+                return Inertia::render('PensionSimulation', [
+                    'sessionUuid' => $sessionUuid,
+                    'existingFormData' => $session->form_data,
+                    'existingSimulationResults' => $session->simulation_results
+                ]);
+            }
+            
+            // Session exists and has pension_value but no form data yet
+            return Inertia::render('PensionSimulation', [
+                'sessionUuid' => $sessionUuid
+            ]);
+        }
+        
+        // No session parameter - redirect to homepage
+        return redirect()->route('home');
     }
 
     /**
@@ -64,6 +96,31 @@ class PensionSimulationController extends Controller
             includeSickLeave: $validated['include_sick_leave'] ?? false,
             forecastVariant: $validated['forecast_variant'] ?? 'variant_1'
         );
+
+        // If session_uuid is provided, update the existing session with form data
+        if (isset($validated['session_uuid'])) {
+            $session = PensionSession::where('uuid', $validated['session_uuid'])
+                ->notExpired()
+                ->first();
+
+            if ($session) {
+                // Update session with form data and calculation results
+                $session->update([
+                    'form_data' => [
+                        'age' => $validated['age'],
+                        'gender' => $validated['gender'],
+                        'gross_salary' => $validated['gross_salary'],
+                        'retirement_year' => $validated['retirement_year'],
+                        'account_balance' => $validated['account_balance'] ?? null,
+                        'subaccount_balance' => $validated['subaccount_balance'] ?? null,
+                        'include_sick_leave' => $validated['include_sick_leave'] ?? false,
+                        'forecast_variant' => $validated['forecast_variant'] ?? 'variant_1',
+                    ],
+                    'simulation_results' => $result,
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
         return response()->json($result);
     }
@@ -91,16 +148,23 @@ class PensionSimulationController extends Controller
         return response()->json([
             'success' => true,
             'session_uuid' => $session->uuid,
-            'share_url' => route('pension.session.show', $session->uuid),
+            'share_url' => route('home') . '?session=' . $session->uuid,
         ]);
     }
 
     /**
      * Show a shared pension session
      */
-    public function show(string $uuid): Response
+    public function show(Request $request): Response
     {
-        $session = PensionSession::where('uuid', $uuid)
+        $sessionUuid = $request->query('session');
+        
+        // If no session parameter, show normal welcome page
+        if (!$sessionUuid) {
+            return Inertia::render('Welcome');
+        }
+
+        $session = PensionSession::where('uuid', $sessionUuid)
             ->notExpired()
             ->first();
 
@@ -121,6 +185,21 @@ class PensionSimulationController extends Controller
         ]);
     }
 
+
+    /**
+     * Calculate pension data for storage
+     */
+    private function calculatePensionData(float $pensionValue): array
+    {
+        $averagePension = 3500; // Średnia krajowa
+        $percentageDifference = (($pensionValue - $averagePension) / $averagePension) * 100;
+
+        return [
+            'average_pension' => $averagePension,
+            'percentage_difference' => $percentageDifference,
+            'calculated_at' => now()->toISOString(),
+        ];
+    }
 
     /**
      * Prepare pension data for frontend display

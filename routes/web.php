@@ -7,10 +7,6 @@ use App\Http\Controllers\PensionFactController;
 use App\Http\Controllers\PensionSimulationController;
 use App\Http\Controllers\TestController;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
-
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -19,7 +15,7 @@ Route::get('/api/pension-fact/random', [PensionFactController::class, 'random'])
 
 // Pension simulation routes
 Route::post('/api/pension-simulation', [PensionSimulationController::class, 'store'])->name('pension.simulation.store');
-Route::get('/session/{uuid}', [PensionSimulationController::class, 'show'])->name('pension.session.show');
+Route::get('/', [PensionSimulationController::class, 'show'])->name('home');
 // Symulacja przyszłej emerytury
 Route::get('/symulacja-emerytury', [PensionSimulationController::class, 'index'])->name('pension-simulation.index');
 Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simulate'])->name('pension-simulation.simulate');

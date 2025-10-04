@@ -50,6 +50,7 @@ class PensionSimulationRequest extends FormRequest
             'subaccount_balance' => 'nullable|numeric|min:0|max:10000000',
             'include_sick_leave' => 'boolean',
             'forecast_variant' => 'nullable|in:variant_1,variant_2,variant_3',
+            'session_uuid' => 'nullable|string|uuid',
         ];
     }
 
