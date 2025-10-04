@@ -1,12 +1,30 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+
+// Props
+interface Props {
+    sessionUuid?: string;
+    existingFormData?: {
+        age: number;
+        gender: 'male' | 'female';
+        gross_salary: number;
+        retirement_year: number;
+        account_balance?: number;
+        subaccount_balance?: number;
+        include_sick_leave: boolean;
+        forecast_variant?: string;
+    };
+    existingSimulationResults?: any;
+}
+
+const props = defineProps<Props>();
 
 // Typy
 interface FormData {
@@ -69,6 +87,27 @@ const errors = ref<ValidationErrors>({});
 const isSubmitting = ref(false);
 const showResults = ref(false);
 const simulationResult = ref<SimulationResult | null>(null);
+
+// Populate form with existing data if available
+onMounted(() => {
+    if (props.existingFormData) {
+        formData.value = {
+            age: props.existingFormData.age.toString(),
+            gender: props.existingFormData.gender,
+            gross_salary: props.existingFormData.gross_salary.toString(),
+            retirement_year: props.existingFormData.retirement_year.toString(),
+            account_balance: props.existingFormData.account_balance?.toString() || '',
+            subaccount_balance: props.existingFormData.subaccount_balance?.toString() || '',
+            include_sick_leave: props.existingFormData.include_sick_leave
+        };
+    }
+    
+    // If there are existing simulation results, show them
+    if (props.existingSimulationResults) {
+        simulationResult.value = props.existingSimulationResults;
+        showResults.value = true;
+    }
+});
 
 // Obliczenie wieku emerytalnego
 const retirementAge = computed(() => {
@@ -211,21 +250,28 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
     
     try {
+        const requestBody: any = {
+            age: parseInt(formData.value.age),
+            gender: formData.value.gender,
+            gross_salary: parseFloat(formData.value.gross_salary),
+            retirement_year: parseInt(formData.value.retirement_year),
+            account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
+            subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
+            include_sick_leave: formData.value.include_sick_leave
+        };
+
+        // Include session UUID if present
+        if (props.sessionUuid) {
+            requestBody.session_uuid = props.sessionUuid;
+        }
+
         const response = await fetch('/api/pension/simulate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
-            body: JSON.stringify({
-                age: parseInt(formData.value.age),
-                gender: formData.value.gender,
-                gross_salary: parseFloat(formData.value.gross_salary),
-                retirement_year: parseInt(formData.value.retirement_year),
-                account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
-                subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
-                include_sick_leave: formData.value.include_sick_leave
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();

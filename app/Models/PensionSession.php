@@ -15,12 +15,16 @@ class PensionSession extends Model
         'uuid',
         'pension_value',
         'calculation_data',
+        'form_data',
+        'simulation_results',
         'expires_at',
     ];
 
     protected $casts = [
         'pension_value' => 'decimal:2',
         'calculation_data' => 'array',
+        'form_data' => 'array',
+        'simulation_results' => 'array',
         'expires_at' => 'datetime',
     ];
 
