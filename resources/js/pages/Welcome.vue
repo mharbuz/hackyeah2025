@@ -87,11 +87,18 @@ const isSharedSession = computed(() => !!props.sharedSession);
 
 // Inicjalizacja dla udostępnionej sesji
 onMounted(() => {
+    console.log('Welcome component mounted');
+    console.log('isSharedSession:', isSharedSession.value);
+    console.log('props.sharedSession:', props.sharedSession);
+    console.log('props.sharedPensionData:', props.sharedPensionData);
+    
     if (isSharedSession.value && props.sharedSession && props.sharedPensionData) {
+        console.log('Initializing shared session...');
         desiredPension.value = props.sharedSession.pension_value;
         showResults.value = true;
         sessionUuid.value = props.sharedSession.uuid;
-        // Dla udostępnionej sesji nie pokazujemy formularza wprowadzania
+        // Pobierz ciekawostkę dla udostępnionej sesji
+        fetchRandomFact();
     }
 });
 
@@ -146,15 +153,18 @@ const formatCurrency = (amount: number) => {
 
 // Pobierz losową ciekawostkę z backendu
 const fetchRandomFact = async () => {
+    console.log('Fetching random fact...');
     isLoadingFact.value = true;
     try {
         const response = await axios.get('/api/pension-fact/random');
+        console.log('Fact received:', response.data.fact);
         currentFunFact.value = response.data.fact;
     } catch (error) {
         console.error('Błąd podczas pobierania ciekawostki:', error);
         currentFunFact.value = 'Nie udało się załadować ciekawostki. Spróbuj ponownie później.';
     } finally {
         isLoadingFact.value = false;
+        console.log('Fact loading completed');
     }
 };
 
