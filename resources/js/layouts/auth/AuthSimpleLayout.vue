@@ -2,16 +2,25 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
+
+// Wymuś jasny motyw dla strony autoryzacji
+onMounted(() => {
+    document.documentElement.classList.remove('dark');
+    document.body.style.backgroundColor = '#ffffff';
+    document.body.style.color = '#111827';
+});
 </script>
 
 <template>
     <div
-        class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+        class="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10"
+        style="background-color: #ffffff; color: #111827;"
     >
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
@@ -24,14 +33,14 @@ defineProps<{
                             class="mb-1 flex h-9 w-9 items-center justify-center rounded-md"
                         >
                             <AppLogoIcon
-                                class="size-9 fill-current text-[var(--foreground)] dark:text-white"
+                                class="size-9 fill-current text-gray-900"
                             />
                         </div>
                         <span class="sr-only">{{ title }}</span>
                     </Link>
                     <div class="space-y-2 text-center">
-                        <h1 class="text-xl font-medium">{{ title }}</h1>
-                        <p class="text-center text-sm text-muted-foreground">
+                        <h1 class="text-xl font-medium" style="color: #111827;">{{ title }}</h1>
+                        <p class="text-center text-sm" style="color: #4b5563;">
                             {{ description }}
                         </p>
                     </div>

@@ -47,7 +47,7 @@ COPY vite.config.ts ./
 COPY tsconfig.json ./
 
 # Instaluj zależności npm
-RUN npm ci --only=production=false
+RUN npm install --no-audit
 
 # Kopiuj resztę plików aplikacji
 COPY . .

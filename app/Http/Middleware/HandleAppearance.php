@@ -16,7 +16,14 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        // Wymuś jasny motyw dla stron autoryzacji (login, register, reset hasła)
+        $authRoutes = ['login', 'register', 'password.request', 'password.reset', 'verification.notice'];
+        
+        if ($request->routeIs($authRoutes)) {
+            View::share('appearance', 'light');
+        } else {
+            View::share('appearance', $request->cookie('appearance') ?? 'system');
+        }
 
         return $next($request);
     }

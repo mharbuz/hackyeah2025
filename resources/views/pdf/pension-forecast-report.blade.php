@@ -279,6 +279,44 @@
         </div>
         @endif
 
+        <!-- Porównanie z/bez zwolnień lekarskich -->
+        @if(isset($simulation_results['monthly_pension_without_sick_leave']) && isset($simulation_results['sick_leave_impact']))
+        <div class="card">
+            <div class="card-title">🏥 Wpływ zwolnień lekarskich na emeryturę</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">Emerytura BEZ uwzględnienia zwolnień:</div>
+                    <div class="info-value" style="color: rgb(0, 153, 63);">
+                        {{ number_format($simulation_results['monthly_pension_without_sick_leave'], 2, ',', ' ') }} zł
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Emerytura Z uwzględnieniem zwolnień:</div>
+                    <div class="info-value" style="color: rgb(240, 94, 94);">
+                        {{ number_format($simulation_results['monthly_pension'], 2, ',', ' ') }} zł
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Redukcja przez zwolnienia:</div>
+                    <div class="info-value" style="color: rgb(240, 94, 94);">
+                        <strong>-{{ number_format($simulation_results['sick_leave_impact']['pension_reduction'], 2, ',', ' ') }} zł 
+                        ({{ number_format($simulation_results['sick_leave_impact']['percentage_reduction'], 2) }}%)</strong>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Szacowana łączna liczba dni zwolnień:</div>
+                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['average_days'] }} dni</div>
+                </div>
+            </div>
+            
+            <div class="educational-box" style="margin-top: 10px;">
+                <strong>📚 Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
+                (około 80% utraty składki). W całej karierze zawodowej nawet niewielka liczba dni zwolnienia może realnie wpłynąć 
+                na wysokość przyszłej emerytury.
+            </div>
+        </div>
+        @endif
+
         @if(isset($simulation_results['economic_context']))
         <div class="card">
             <div class="card-title">📈 Kontekst ekonomiczny</div>
