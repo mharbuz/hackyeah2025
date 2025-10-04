@@ -936,6 +936,26 @@ const getAdvancedDashboardUrl = () => {
                             </div>
                         </div>
 
+                        <div class="bg-white border shadow-sm p-6 lg:p-8 mb-8" style="border-color: rgb(190, 195, 206); background-color: rgba(190, 195, 206, 0.05);">
+                            <div class="mb-4">
+                                <h4 class="text-xl font-bold flex items-center gap-2" style="color: rgb(0, 65, 110);">
+                                    <div class="w-10 h-10 flex items-center justify-center" style="background-color: rgb(0, 153, 63);">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                            <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <span>Składki emerytalne</span>
+                                </h4>
+                            </div>
+                            <div class="text-4xl font-bold mb-2" style="color: rgb(0, 153, 63);">
+                                {{ formatCurrency(simulationResult.total_contributions) }}
+                            </div>
+                            <p class="text-gray-600 leading-relaxed">
+                                Łączna wartość składek odprowadzonych do emerytury (zgromadzone + przyszłe)
+                            </p>
+                        </div>
+
                         <!-- Wyjaśnienie różnicy -->
                         <div class="border-l-4 p-6" style="background-color: rgba(255, 179, 79, 0.1); border-color: rgb(255, 179, 79);">
                             <div class="flex items-start gap-3">
@@ -1332,50 +1352,9 @@ const getAdvancedDashboardUrl = () => {
                     </div>
                 </div>
 
-                <!-- Szczegóły -->
-                <div class="grid md:grid-cols-2 gap-6 mt-30">
-                    <div class="bg-white border border-gray-200 shadow-sm p-6 lg:p-8">
-                        <div class="mb-4">
-                            <h4 class="text-xl font-bold flex items-center gap-2" style="color: rgb(0, 65, 110);">
-                                <div class="w-10 h-10 flex items-center justify-center" style="background-color: rgb(0, 153, 63);">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                                        <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span>Składki emerytalne</span>
-                            </h4>
-                        </div>
-                        <div class="text-4xl font-bold mb-2" style="color: rgb(0, 153, 63);">
-                            {{ formatCurrency(simulationResult.total_contributions) }}
-                        </div>
-                        <p class="text-gray-600 leading-relaxed">
-                            Łączna wartość składek odprowadzonych do emerytury (zgromadzone + przyszłe)
-                        </p>
-                    </div>
-
-                    <div class="bg-white border border-gray-200 shadow-sm p-6 lg:p-8">
-                        <div class="mb-4">
-                            <h4 class="text-xl font-bold flex items-center gap-2" style="color: rgb(0, 65, 110);">
-                                <div class="w-10 h-10 flex items-center justify-center" style="background-color: rgb(63, 132, 210);">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span>Czas do emerytury</span>
-                            </h4>
-                        </div>
-                        <div class="text-4xl font-bold mb-2" style="color: rgb(63, 132, 210);">
-                            {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
-                        </div>
-                        <p class="text-gray-600 leading-relaxed">
-                            Czas pozostały do osiągnięcia wieku emerytalnego i przejścia na emeryturę
-                        </p>
-                    </div>
-                </div>
 
                 <!-- Kluczowe wskaźniki ekonomiczne -->
-                <div v-if="simulationResult.economic_context" class="space-y-6">
+                <div v-if="simulationResult.economic_context" class="space-y-6 mt-30">
                     <!-- Tytuł sekcji -->
                     <div class="text-center">
                         <h3 class="text-2xl md:text-3xl font-bold text-[rgb(0,65,110)] mb-2">
