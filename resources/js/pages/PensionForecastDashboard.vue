@@ -476,82 +476,222 @@ onMounted(() => {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
     
-    <div class="min-h-screen bg-gradient-to-br from-[rgb(0,65,110)] via-[rgb(63,132,210)] to-[rgb(0,153,63)]">
+    <div class="min-h-screen bg-white zus-page">
         <!-- Header -->
-        <header class="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <nav class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <Link :href="home()" class="group flex items-center gap-3 bg-white rounded-xl px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                            <img 
-                                src="/zus-logo.svg" 
-                                alt="ZUS Logo" 
-                                class="h-8 w-auto"
+        <header class="bg-white border-b">
+            <div class="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-8">
+                <!-- Desktop Header (lg and up) -->
+                <div class="hidden lg:flex items-center py-5 gap-2">
+                    <!-- Logo -->
+                    <div class="flex items-center shrink-0 mr-5">
+                        <Link :href="home()">
+                            <img
+                                src="/logo_zus_darker_with_text.svg"
+                                alt="ZUS Logo"
+                                class="h-12 w-auto cursor-pointer"
                             />
-                            <span class="font-bold text-[rgb(0,65,110)] text-lg hidden sm:block">Symulator</span>
                         </Link>
-                        <div class="hidden md:block">
-                            <h1 class="text-white text-xl font-bold drop-shadow-lg">Dashboard Prognozowania</h1>
+                    </div>
+
+                    <!-- Right Side Navigation -->
+                    <div class="flex items-center gap-2 flex-wrap justify-end">
+                        <!-- Kontakt -->
+                        <a href="#" class="text-sm font-medium text-gray-700 hover:text-gray-900 hidden xl:block">
+                            Kontakt
+                        </a>
+
+                        <!-- Separator -->
+                        <div class="h-4 w-px bg-gray-300"></div>
+
+                        <!-- Language Selector -->
+                        <div class="relative hidden xl:block">
+                            <button class="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <span>PL</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Separator -->
+                        <div class="h-4 w-px bg-gray-300"></div>
+
+                        <!-- Accessibility Icons -->
+                        <div class="flex items-center gap-3">
+                            <!-- Icon - Słuch -->
+                            <button
+                                class="p-2 rounded hover:opacity-90 transition-colors"
+                                style="background-color: rgb(0, 65, 110);"
+                                aria-label="Wersja dla osób niesłyszących"
+                            >
+                                <img src="/ikona_ucho.svg" alt="Ikona ucha" class="h-6 w-6" />
+                            </button>
+
+                            <!-- Separator -->
+                            <div class="h-4 w-px bg-gray-300"></div>
+
+                            <!-- Icon - Wózek -->
+                            <button
+                                class="p-2 rounded hover:opacity-90 transition-colors"
+                                style="background-color: rgb(0, 65, 110);"
+                                aria-label="Wersja dla osób niepełnosprawnych"
+                            >
+                                <img src="/ikona_wozek.svg" alt="Ikona wózka" class="h-6 w-6" />
+                            </button>
+
+                            <!-- Separator -->
+                            <div class="h-4 w-px bg-gray-300"></div>
+
+                            <!-- BIP Icon -->
+                            <button class="p-2 rounded hover:bg-gray-100 transition-colors" aria-label="BIP">
+                                <img src="/bip_simple.svg" alt="BIP" class="h-9 w-9" />
+                            </button>
+                        </div>
+
+                        <!-- Separator -->
+                        <div class="h-6 w-px bg-gray-300 mx-2"></div>
+
+                        <!-- Login Buttons -->
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="flex px-3 xl:px-4 py-1.5 xl:py-2 text-xs xl:text-sm font-semibold border-2 rounded hover:opacity-90 transition-colors items-center"
+                                style="color: rgb(0, 65, 110); border-color: rgb(0, 65, 110); white-space: nowrap;"
+                            >
+                                <span>Zarejestruj w PUE/eZUS</span>
+                                <svg class="w-3 h-3 xl:w-4 xl:h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            <button
+                                class="flex px-3 xl:px-4 py-1.5 xl:py-2 text-xs xl:text-sm font-semibold text-gray-900 rounded hover:opacity-90 transition-colors items-center border-2"
+                                style="background-color: rgb(250, 184, 86); border-color: rgb(0, 65, 110); white-space: nowrap;"
+                            >
+                                <span style="color: rgb(0, 65, 110);">Zaloguj do PUE/eZUS</span>
+                                <svg class="w-3 h-3 xl:w-4 xl:h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-4 ml-4">
+                            <!-- Search Icon -->
+                            <button
+                                class="p-2 rounded-full hover:opacity-90 transition-colors mb-2"
+                                style="background-color: rgb(17, 120, 59);"
+                                aria-label="Szukaj"
+                            >
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+
+                            <!-- EU Logo -->
+                            <div class="2xl:flex items-center">
+                                <img src="/eu_pl_chromatic.jpg" alt="Unia Europejska" class="h-12 w-auto" />
+                            </div>
                         </div>
                     </div>
-                    <Link
-                        :href="home()"
-                        class="flex items-center gap-2 rounded-xl bg-white/90 backdrop-blur px-5 py-3 text-base font-semibold text-[rgb(0,65,110)] hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        <span>Powrót</span>
-                    </Link>
-                </nav>
+                </div>
+
+                <!-- Mobile Header (below lg) -->
+                <div class="lg:hidden flex justify-between py-3">
+                    <!-- First Row: Logo and Links -->
+                    <div class="flex items-center justify-between mb-2">
+                        <!-- Logo -->
+                        <div class="flex items-center shrink-0">
+                            <Link :href="home()">
+                                <img
+                                    src="/logo_zus_darker_with_text.svg"
+                                    alt="ZUS Logo"
+                                    class="h-10 sm:h-12 w-auto cursor-pointer"
+                                />
+                            </Link>
+                        </div>
+
+                        <!-- Links -->
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <!-- Zarejestruj w PUE/eZUS -->
+                            <a
+                                href="#"
+                                class="hidden md:block text-sm font-medium hover:underline whitespace-nowrap"
+                                style="color: rgb(0, 153, 63);"
+                            >
+                                Zarejestruj w PUE/eZUS
+                            </a>
+
+                            <!-- Zaloguj do PUE/eZUS -->
+                            <a
+                                href="#"
+                                class="hidden md:block text-sm font-medium hover:underline whitespace-nowrap"
+                                style="color: rgb(0, 153, 63);"
+                            >
+                                Zaloguj do PUE/eZUS
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Second Row: Szukaj, UE, Menu -->
+                    <div class="flex items-center justify-end gap-4">
+                        <!-- Search Button - vertical layout -->
+                        <button
+                            class="flex flex-col items-center justify-center h-9 gap-1 px-2 py-1 rounded-full hover:opacity-90 transition-colors mb-2"
+                            style="background-color: rgb(17, 120, 59);"
+                            aria-label="Szukaj"
+                        >
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+
+                        <!-- EU Flag with text -->
+                        <div class="flex flex-col items-center justify-center">
+                            <img src="/eu_pl_chromatic.jpg" alt="Unia Europejska" class="h-10 w-auto mb-1" />
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <main class="w-full max-w-7xl mx-auto p-4 lg:p-8">
             <!-- Hero Section -->
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
-                    <div class="w-2 h-2 bg-[rgb(255,179,79)] rounded-full animate-pulse"></div>
-                    <span class="text-white text-sm font-semibold">Zaawansowane prognozowanie</span>
-                </div>
-                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg">
-                    Szczegółowa analiza emerytury
-                </h2>
-                <p class="text-white/90 text-lg md:text-xl max-w-3xl mx-auto drop-shadow">
-                    Wprowadź dokładne dane historyczne i przyszłościowe dla najprecyzyjniejszej prognozy
-                </p>
-                <!-- Expected Pension Display -->
-                <div v-if="expectedPension" class="mt-6 inline-block bg-white/95 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-2xl">
-                    <p class="text-sm text-[rgb(0,65,110)] font-semibold mb-1">Twoja oczekiwana emerytura:</p>
-                    <p class="text-4xl font-bold text-[rgb(255,179,79)]">
-                        {{ expectedPension.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} zł
+            <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12 mb-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4" style="color: rgb(0, 65, 110);">
+                        Zaawansowany Dashboard Prognozowania
+                    </h2>
+                    <p class="text-base lg:text-lg text-gray-700 max-w-2xl mx-auto">
+                        Wprowadź dokładne dane historyczne i przyszłościowe dla najprecyzyjniejszej prognozy emerytury
                     </p>
-                    <p class="text-xs text-gray-600 mt-1">Zoptymalizuj swoje oszczędności, aby osiągnąć ten cel</p>
+                    <!-- Expected Pension Display -->
+                    <div v-if="expectedPension" class="mt-6 inline-block bg-white border-2 rounded-xl px-8 py-4 shadow-sm" style="border-color: rgb(0, 153, 63);">
+                        <p class="text-sm font-semibold mb-1" style="color: rgb(0, 65, 110);">Twoja oczekiwana emerytura:</p>
+                        <p class="text-4xl font-bold" style="color: rgb(0, 153, 63);">
+                            {{ expectedPension.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} zł
+                        </p>
+                        <p class="text-xs text-gray-600 mt-1">Zoptymalizuj swoje oszczędności, aby osiągnąć ten cel</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Główny formularz -->
-            <Card class="shadow-2xl border-none overflow-hidden backdrop-blur-sm bg-white/95 mb-8">
-                <CardHeader class="bg-white border-b-4 border-[rgb(0,153,63)]">
-                    <CardTitle class="text-2xl md:text-3xl font-bold flex items-center gap-3 text-[rgb(0,65,110)]">
-                        <div class="w-12 h-12 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center shadow-lg">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <span>Dane podstawowe</span>
-                    </CardTitle>
-                </CardHeader>
+            <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12 mb-8">
+                <div class="mb-8">
+                    <h3 class="text-2xl md:text-3xl font-bold mb-2" style="color: rgb(0, 65, 110);">
+                        Dane do prognozy
+                    </h3>
+                    <p class="text-gray-600 text-base md:text-lg">
+                        Wypełnij formularz, aby otrzymać szczegółową prognozę emerytury
+                    </p>
+                </div>
                 
-                <CardContent class="p-6 md:p-8 lg:p-10">
-                    <form @submit.prevent="handleSimulate" class="space-y-10">
+                <form @submit.prevent="handleSimulate" class="space-y-10">
                         <!-- SEKCJA 1: DANE PODSTAWOWE (wspólne z symulacją podstawową) -->
                         <div class="space-y-6">
-                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(0,153,63)]">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            <div class="flex items-center gap-3 pb-3 border-b-2" style="border-bottom-color: rgb(0, 153, 63);">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: rgb(0, 153, 63);">
                                     1
                                 </div>
-                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                <h3 class="text-xl md:text-2xl font-bold" style="color: rgb(0, 65, 110);">
                                     Informacje podstawowe
                                 </h3>
                                 <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
@@ -563,8 +703,8 @@ onMounted(() => {
                             <div class="grid md:grid-cols-3 gap-6">
                                 <!-- Wiek -->
                                 <div class="space-y-3">
-                                    <Label for="age" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                        Obecny wiek <span class="text-[rgb(240,94,94)]">*</span>
+                                    <Label for="age" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
+                                        Obecny wiek <span style="color: rgb(240, 94, 94);">*</span>
                                     </Label>
                                     <Input
                                         id="age"
@@ -574,15 +714,16 @@ onMounted(() => {
                                         max="100"
                                         placeholder="np. 35"
                                         @blur="initializeHistoricalData"
-                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        class="text-lg h-14 font-bold bg-white border-2"
+                                        style="color: rgb(0, 65, 110);"
                                         required
                                     />
                                 </div>
 
                                 <!-- Płeć -->
                                 <div class="space-y-3">
-                                    <Label class="text-base font-semibold text-[rgb(0,65,110)]">
-                                        Płeć <span class="text-[rgb(240,94,94)]">*</span>
+                                    <Label class="text-base font-semibold" style="color: rgb(0, 65, 110);">
+                                        Płeć <span style="color: rgb(240, 94, 94);">*</span>
                                     </Label>
                                     <div class="flex gap-3">
                                         <button
@@ -591,9 +732,10 @@ onMounted(() => {
                                             :class="[
                                                 'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
                                                 formData.gender === 'male'
-                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                                    ? 'text-white border-transparent shadow-lg'
+                                                    : 'border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
                                             ]"
+                                            :style="formData.gender === 'male' ? 'background-color: rgb(63, 132, 210);' : 'background-color: white;'"
                                         >
                                             Mężczyzna
                                         </button>
@@ -603,22 +745,23 @@ onMounted(() => {
                                             :class="[
                                                 'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
                                                 formData.gender === 'female'
-                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                                    ? 'text-white border-transparent shadow-lg'
+                                                    : 'border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
                                             ]"
+                                            :style="formData.gender === 'female' ? 'background-color: rgb(63, 132, 210);' : 'background-color: white;'"
                                         >
                                             Kobieta
                                         </button>
                                     </div>
-                                    <p v-if="retirementAge" class="text-[rgb(0,153,63)] text-sm font-medium">
+                                    <p v-if="retirementAge" class="text-sm font-medium" style="color: rgb(0, 153, 63);">
                                         Wiek emerytalny: {{ retirementAge }} lat
                                     </p>
                                 </div>
 
                                 <!-- Rok emerytury -->
                                 <div class="space-y-3">
-                                    <Label for="retirement_year" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                        Rok emerytury <span class="text-[rgb(240,94,94)]">*</span>
+                                    <Label for="retirement_year" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
+                                        Rok emerytury <span style="color: rgb(240, 94, 94);">*</span>
                                     </Label>
                                     <Input
                                         id="retirement_year"
@@ -626,7 +769,8 @@ onMounted(() => {
                                         type="number"
                                         :min="new Date().getFullYear()"
                                         placeholder="np. 2055"
-                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        class="text-lg h-14 font-bold bg-white border-2"
+                                        style="color: rgb(0, 65, 110);"
                                         required
                                     />
                                 </div>
@@ -635,8 +779,8 @@ onMounted(() => {
                             <!-- Wynagrodzenie i salda -->
                             <div class="grid md:grid-cols-3 gap-6">
                                 <div class="space-y-3">
-                                    <Label for="gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                        Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
+                                    <Label for="gross_salary" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
+                                        Obecne wynagrodzenie brutto <span style="color: rgb(240, 94, 94);">*</span>
                                     </Label>
                                     <div class="relative">
                                         <Input
@@ -645,7 +789,8 @@ onMounted(() => {
                                             type="number"
                                             step="100"
                                             placeholder="np. 5000"
-                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            class="text-lg h-14 pr-12 font-bold bg-white border-2"
+                                            style="color: rgb(0, 65, 110);"
                                             required
                                         />
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
@@ -653,7 +798,7 @@ onMounted(() => {
                                 </div>
 
                                 <div class="space-y-3">
-                                    <Label for="account_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                    <Label for="account_balance" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
                                         Saldo konta ZUS
                                     </Label>
                                     <div class="relative">
@@ -663,14 +808,15 @@ onMounted(() => {
                                             type="number"
                                             step="100"
                                             placeholder="opcjonalnie"
-                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            class="text-lg h-14 pr-12 font-bold bg-white border-2"
+                                            style="color: rgb(0, 65, 110);"
                                         />
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
                                     </div>
                                 </div>
 
                                 <div class="space-y-3">
-                                    <Label for="subaccount_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                    <Label for="subaccount_balance" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
                                         Saldo subkonta ZUS
                                     </Label>
                                     <div class="relative">
@@ -680,7 +826,8 @@ onMounted(() => {
                                             type="number"
                                             step="100"
                                             placeholder="opcjonalnie"
-                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            class="text-lg h-14 pr-12 font-bold bg-white border-2"
+                                            style="color: rgb(0, 65, 110);"
                                         />
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
                                     </div>
@@ -690,11 +837,11 @@ onMounted(() => {
 
                         <!-- SEKCJA 2: DANE ZAAWANSOWANE (tylko dla dashboard prognozowania) -->
                         <div class="space-y-6">
-                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(255,179,79)]">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            <div class="flex items-center gap-3 pb-3 border-b-2" style="border-bottom-color: rgb(255, 179, 79);">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: rgb(255, 179, 79);">
                                     2
                                 </div>
-                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                <h3 class="text-xl md:text-2xl font-bold" style="color: rgb(0, 65, 110);">
                                     Dane zaawansowane
                                 </h3>
                                 <span class="text-sm text-gray-600 bg-orange-100 px-3 py-1 rounded-full">
@@ -706,7 +853,7 @@ onMounted(() => {
                             <div class="grid md:grid-cols-2 gap-6">
                                 <!-- Wiek rozpoczęcia pracy -->
                                 <div class="space-y-3">
-                                    <Label for="work_start_age" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                    <Label for="work_start_age" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
                                         Wiek rozpoczęcia pracy
                                     </Label>
                                     <Input
@@ -717,7 +864,8 @@ onMounted(() => {
                                         max="65"
                                         placeholder="np. 25"
                                         @blur="initializeHistoricalData"
-                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        class="text-lg h-14 font-bold bg-white border-2"
+                                        style="color: rgb(0, 65, 110);"
                                     />
                                     <p class="text-xs text-gray-600">
                                         Od tego wieku generujemy historię
@@ -726,7 +874,7 @@ onMounted(() => {
 
                                 <!-- Wskaźnik indeksacji -->
                                 <div class="space-y-3">
-                                    <Label for="wage_indexation_rate" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                    <Label for="wage_indexation_rate" class="text-base font-semibold" style="color: rgb(0, 65, 110);">
                                         Wskaźnik indeksacji wynagrodzeń (% rocznie)
                                     </Label>
                                     <div class="relative">
@@ -736,7 +884,8 @@ onMounted(() => {
                                             type="number"
                                             step="0.1"
                                             placeholder="5.0"
-                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            class="text-lg h-14 pr-12 font-bold bg-white border-2"
+                                            style="color: rgb(0, 65, 110);"
                                         />
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">%</span>
                                     </div>
@@ -749,11 +898,11 @@ onMounted(() => {
 
                         <!-- SEKCJA 3: DANE HISTORYCZNE I PRZYSZŁOŚCIOWE -->
                         <div class="space-y-6">
-                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(63,132,210)]">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            <div class="flex items-center gap-3 pb-3 border-b-2" style="border-bottom-color: rgb(63, 132, 210);">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background-color: rgb(63, 132, 210);">
                                     3
                                 </div>
-                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                <h3 class="text-xl md:text-2xl font-bold" style="color: rgb(0, 65, 110);">
                                     Dane historyczne i przyszłościowe
                                 </h3>
                                 <span class="text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full">
@@ -769,9 +918,10 @@ onMounted(() => {
                                     :class="[
                                         'flex-1 h-12 rounded-lg font-semibold text-base transition-all duration-300',
                                         activeDataView === 'history'
-                                            ? 'bg-white text-[rgb(0,65,110)] shadow-md'
-                                            : 'text-gray-600 hover:text-[rgb(0,65,110)]'
+                                            ? 'bg-white shadow-md'
+                                            : 'text-gray-600'
                                     ]"
+                                    :style="activeDataView === 'history' ? 'color: rgb(0, 65, 110);' : ''"
                                 >
                                     📅 Historia zatrudnienia
                                 </button>
@@ -781,9 +931,10 @@ onMounted(() => {
                                     :class="[
                                         'flex-1 h-12 rounded-lg font-semibold text-base transition-all duration-300',
                                         activeDataView === 'future'
-                                            ? 'bg-white text-[rgb(0,65,110)] shadow-md'
-                                            : 'text-gray-600 hover:text-[rgb(0,65,110)]'
+                                            ? 'bg-white shadow-md'
+                                            : 'text-gray-600'
                                     ]"
+                                    :style="activeDataView === 'future' ? 'color: rgb(0, 65, 110);' : ''"
                                 >
                                     🔮 Przyszłe prognozy
                                 </button>
@@ -794,7 +945,7 @@ onMounted(() => {
                                 <div class="space-y-4">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h3 class="text-xl font-bold text-[rgb(0,65,110)]">
+                                            <h3 class="text-xl font-bold" style="color: rgb(0, 65, 110);">
                                                 Dane historyczne
                                             </h3>
                                             <p v-if="historicalData.length > 0" class="text-sm text-gray-600 mt-1">
@@ -843,14 +994,14 @@ onMounted(() => {
 
                                 <div v-else class="space-y-4 max-h-96 overflow-y-auto pr-2">
                                     <!-- Nagłówki kolumn -->
-                                    <div class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center px-4 pb-2 border-b-2 border-[rgb(190,195,206)] sticky top-0 bg-white z-10">
-                                        <div class="font-bold text-[rgb(0,65,110)] text-sm w-20">
+                                    <div class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center px-4 pb-2 border-b-2 sticky top-0 bg-white z-10" style="border-bottom-color: rgb(190, 195, 206);">
+                                        <div class="font-bold text-sm w-20" style="color: rgb(0, 65, 110);">
                                             ROK
                                         </div>
-                                        <div class="font-bold text-[rgb(0,65,110)] text-sm">
+                                        <div class="font-bold text-sm" style="color: rgb(0, 65, 110);">
                                             WYNAGRODZENIE BRUTTO (miesięcznie)
                                         </div>
-                                        <div class="font-bold text-[rgb(0,65,110)] text-sm">
+                                        <div class="font-bold text-sm" style="color: rgb(0, 65, 110);">
                                             ZWOLNIENIA LEKARSKIE (dni rocznie)
                                         </div>
                                         <div class="w-12"></div>
@@ -860,9 +1011,10 @@ onMounted(() => {
                                     <div
                                         v-for="(item, index) in historicalData"
                                         :key="index"
-                                        class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center bg-white p-4 rounded-xl border-2 border-[rgb(190,195,206)]"
+                                        class="grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center bg-white p-4 rounded-xl border-2"
+                                        style="border-color: rgb(190, 195, 206);"
                                     >
-                                        <div class="font-bold text-[rgb(0,65,110)] text-lg w-20">
+                                        <div class="font-bold text-lg w-20" style="color: rgb(0, 65, 110);">
                                             {{ item.year }}
                                         </div>
                                         <div class="relative">
@@ -870,7 +1022,8 @@ onMounted(() => {
                                                 v-model.number="item.gross_salary"
                                                 type="number"
                                                 placeholder="np. 5000"
-                                                class="h-12 pr-10 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                                class="h-12 pr-10 font-bold border-2"
+                                                style="color: rgb(0, 65, 110); background-color: white;"
                                             />
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">zł</span>
                                         </div>
@@ -879,7 +1032,8 @@ onMounted(() => {
                                                 v-model.number="item.sick_leave_days"
                                                 type="number"
                                                 placeholder="np. 7"
-                                                class="h-12 pr-10 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                                class="h-12 pr-10 font-bold border-2"
+                                                style="color: rgb(0, 65, 110); background-color: white;"
                                             />
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">dni</span>
                                         </div>
@@ -888,7 +1042,8 @@ onMounted(() => {
                                             @click="removeHistoricalYear(index)"
                                             variant="ghost"
                                             size="icon"
-                                            class="h-12 w-12 text-[rgb(240,94,94)] hover:bg-[rgb(240,94,94)]/10"
+                                            class="h-12 w-12 hover:bg-[rgb(240,94,94)]/10"
+                                            style="color: rgb(240, 94, 94);"
                                         >
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -901,7 +1056,7 @@ onMounted(() => {
                             <!-- Przyszłość -->
                             <div v-show="activeDataView === 'future'" class="space-y-6">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-xl font-bold text-[rgb(0,65,110)]">
+                                    <h3 class="text-xl font-bold" style="color: rgb(0, 65, 110);">
                                         Prognozy przyszłościowe
                                     </h3>
                                     <Button
@@ -909,6 +1064,7 @@ onMounted(() => {
                                         @click="autoFillFutureData"
                                         variant="outline"
                                         class="h-12"
+                                        style="color: rgb(0, 65, 110); border-color: rgb(0, 65, 110);"
                                     >
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -925,14 +1081,14 @@ onMounted(() => {
 
                                 <div v-else class="space-y-4 max-h-96 overflow-y-auto pr-2">
                                     <!-- Nagłówki kolumn -->
-                                    <div class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center px-4 pb-2 border-b-2 border-[rgb(0,153,63)] sticky top-0 bg-white z-10">
-                                        <div class="font-bold text-[rgb(0,153,63)] text-sm w-20">
+                                    <div class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center px-4 pb-2 border-b-2 sticky top-0 bg-white z-10" style="border-bottom-color: rgb(0, 153, 63);">
+                                        <div class="font-bold text-sm w-20" style="color: rgb(0, 153, 63);">
                                             ROK
                                         </div>
-                                        <div class="font-bold text-[rgb(0,153,63)] text-sm">
+                                        <div class="font-bold text-sm" style="color: rgb(0, 153, 63);">
                                             PROGNOZOWANE WYNAGRODZENIE BRUTTO (miesięcznie)
                                         </div>
-                                        <div class="font-bold text-[rgb(0,153,63)] text-sm">
+                                        <div class="font-bold text-sm" style="color: rgb(0, 153, 63);">
                                             SPODZIEWANE ZWOLNIENIA (dni rocznie)
                                         </div>
                                     </div>
@@ -941,9 +1097,10 @@ onMounted(() => {
                                     <div
                                         v-for="(item, index) in futureData"
                                         :key="index"
-                                        class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center bg-gradient-to-r from-white to-[rgb(0,153,63)]/5 p-4 rounded-xl border-2 border-[rgb(0,153,63)]/30"
+                                        class="grid grid-cols-[auto_1fr_1fr] gap-4 items-center p-4 rounded-xl border-2"
+                                        style="border-color: rgb(0, 153, 63, 0.3);"
                                     >
-                                        <div class="font-bold text-[rgb(0,153,63)] text-lg w-20">
+                                        <div class="font-bold text-lg w-20" style="color: rgb(0, 153, 63);">
                                             {{ item.year }}
                                         </div>
                                         <div class="relative">
@@ -951,7 +1108,8 @@ onMounted(() => {
                                                 v-model.number="item.gross_salary"
                                                 type="number"
                                                 placeholder="np. 6000"
-                                                class="h-12 pr-10 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                                class="h-12 pr-10 font-bold border-2"
+                                                style="color: rgb(0, 65, 110); background-color: white;"
                                             />
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">zł</span>
                                         </div>
@@ -960,7 +1118,8 @@ onMounted(() => {
                                                 v-model.number="item.sick_leave_days"
                                                 type="number"
                                                 placeholder="np. 7"
-                                                class="h-12 pr-10 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                                class="h-12 pr-10 font-bold border-2"
+                                                style="color: rgb(0, 65, 110); background-color: white;"
                                             />
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">dni</span>
                                         </div>
@@ -974,7 +1133,8 @@ onMounted(() => {
                             <Button
                                 type="submit"
                                 :disabled="isSubmitting"
-                                class="w-full h-16 text-xl font-bold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 text-white transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                class="w-full h-16 text-xl font-bold text-white transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                style="background-color: rgb(255, 179, 79);"
                             >
                                 <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-3 h-6 w-6 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -987,286 +1147,263 @@ onMounted(() => {
                             </Button>
                         </div>
                     </form>
-                </CardContent>
-            </Card>
+            </div>
 
             <!-- Wyniki - Wykres wzrostu konta -->
             <div v-if="showResults && simulationResult" id="results" class="space-y-6 animate-slideUp">
                 <!-- Główny wynik -->
-                <Card class="shadow-2xl border-none overflow-hidden bg-gradient-to-br from-[rgb(0,153,63)] via-[rgb(0,65,110)] to-[rgb(63,132,210)] text-white relative">
-                    <div class="absolute inset-0 bg-grid-white/5"></div>
-                    <CardContent class="relative p-8 md:p-12">
-                        <div class="flex justify-center mb-6">
-                            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4" style="color: rgb(0, 65, 110);">
+                            Twoja zaawansowana prognoza emerytury
+                        </h3>
+                    </div>
+
+                    <!-- Dwie karty z kwotami -->
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Wysokość rzeczywista (nominalna) -->
+                        <div class="border-2 p-6 text-center" style="border-color: rgb(63, 132, 210); background-color: rgb(63, 132, 210, 0.05);">
+                            <div class="flex items-center justify-center gap-2 mb-3">
+                                <svg class="w-6 h-6" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
                                 </svg>
-                                <span class="text-sm font-bold">Twoja zaawansowana prognoza emerytury</span>
+                                <h3 class="text-lg font-bold" style="color: rgb(63, 132, 210);">Wysokość rzeczywista</h3>
                             </div>
+                            <div class="text-4xl md:text-5xl font-bold mb-2" style="color: rgb(0, 65, 110);">
+                                {{ formatCurrency(simulationResult.monthly_pension) }}
+                            </div>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Kwota nominalna w {{ formData.retirement_year }} roku
+                            </p>
                         </div>
 
-                        <!-- Dwie karty z kwotami -->
-                        <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <!-- Wysokość rzeczywista (nominalna) -->
-                            <div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-white/30 hover:border-white/50 transition-all duration-300">
-                                <div class="flex items-center justify-center gap-2 mb-3">
-                                    <svg class="w-6 h-6 text-white/90" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
-                                    </svg>
-                                    <h3 class="text-lg font-bold text-white/90">Wysokość rzeczywista</h3>
-                                </div>
-                                <div class="text-4xl md:text-5xl font-bold text-center mb-2 drop-shadow-lg">
-                                    {{ formatCurrency(simulationResult.monthly_pension) }}
-                                </div>
-                                <p class="text-center text-white/80 text-sm leading-relaxed">
-                                    Kwota nominalna w {{ formData.retirement_year }} roku
-                                </p>
+                        <!-- Wysokość urealniona (siła nabywcza) -->
+                        <div v-if="simulationResult.economic_context" class="border-2 p-6 text-center" style="border-color: rgb(255, 179, 79); background-color: rgb(255, 179, 79, 0.05);">
+                            <div class="flex items-center justify-center gap-2 mb-3">
+                                <svg class="w-6 h-6" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <h3 class="text-lg font-bold" style="color: rgb(255, 179, 79);">Wysokość urealniona</h3>
                             </div>
-
-                            <!-- Wysokość urealniona (siła nabywcza) -->
-                            <div v-if="simulationResult.economic_context" class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-[rgb(255,179,79)] hover:border-[rgb(255,179,79)]/80 transition-all duration-300">
-                                <div class="flex items-center justify-center gap-2 mb-3">
-                                    <svg class="w-6 h-6 text-[rgb(255,179,79)]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                    <h3 class="text-lg font-bold text-[rgb(255,179,79)]">Wysokość urealniona</h3>
-                                </div>
-                                <div class="text-4xl md:text-5xl font-bold text-center mb-2 drop-shadow-lg">
-                                    {{ formatCurrency(simulationResult.economic_context.purchasing_power_today) }}
-                                </div>
-                                <p class="text-center text-white/80 text-sm leading-relaxed">
-                                    Wartość w dzisiejszych cenach ({{ new Date().getFullYear() }} r.)
-                                </p>
+                            <div class="text-4xl md:text-5xl font-bold mb-2" style="color: rgb(0, 65, 110);">
+                                {{ formatCurrency(simulationResult.economic_context.purchasing_power_today) }}
                             </div>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Wartość w dzisiejszych cenach ({{ new Date().getFullYear() }} r.)
+                            </p>
                         </div>
+                    </div>
 
-                        <!-- Informacja o czasie do emerytury -->
-                        <div class="flex items-center justify-center gap-3 text-lg md:text-xl opacity-90 bg-white/10 rounded-xl py-4 px-6 backdrop-blur-sm">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    <!-- Informacja o czasie do emerytury -->
+                    <div class="flex items-center justify-center gap-3 text-lg md:text-xl text-gray-700 bg-gray-50 rounded-xl py-4 px-6">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                        </svg>
+                        <span>
+                            Za {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
+                        </span>
+                    </div>
+
+                    <!-- Wyjaśnienie różnicy -->
+                    <div v-if="simulationResult.economic_context" class="mt-6 bg-gray-50 rounded-xl p-5 border border-gray-200">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(255, 179, 79);">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                             </svg>
-                            <span>
-                                Za {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
-                            </span>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                <strong>Wysokość rzeczywista</strong> to kwota, którą otrzymasz w przyszłości. 
+                                <strong>Wysokość urealniona</strong> pokazuje, ile ta emerytura będzie warta w dzisiejszych cenach, 
+                                uwzględniając inflację i zmiany siły nabywczej pieniądza w okresie {{ simulationResult.years_to_retirement }} lat.
+                            </p>
                         </div>
-
-                        <!-- Wyjaśnienie różnicy -->
-                        <div v-if="simulationResult.economic_context" class="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                                </svg>
-                                <p class="text-sm text-white/90 leading-relaxed">
-                                    <strong>Wysokość rzeczywista</strong> to kwota, którą otrzymasz w przyszłości. 
-                                    <strong>Wysokość urealniona</strong> pokazuje, ile ta emerytura będzie warta w dzisiejszych cenach, 
-                                    uwzględniając inflację i zmiany siły nabywczej pieniądza w okresie {{ simulationResult.years_to_retirement }} lat.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Szczegóły -->
                 <div class="grid md:grid-cols-2 gap-6">
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm">
-                        <CardHeader class="pb-3">
-                            <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-2">
-                                <div class="w-10 h-10 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                                        <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span>Składki emerytalne</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-4xl font-bold text-[rgb(0,153,63)] mb-2">
-                                {{ formatCurrency(simulationResult.total_contributions) }}
+                    <div class="bg-white border border-gray-200 shadow-sm p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-10 h-10 flex items-center justify-center" style="background-color: rgb(0, 153, 63);">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                </svg>
                             </div>
-                            <p class="text-gray-600 leading-relaxed">
-                                Łączna wartość składek odprowadzonych do emerytury (zgromadzone + przyszłe)
-                            </p>
-                        </CardContent>
-                    </Card>
+                            <h4 class="text-lg font-bold" style="color: rgb(0, 65, 110);">Składki emerytalne</h4>
+                        </div>
+                        <div class="text-4xl font-bold mb-2" style="color: rgb(0, 153, 63);">
+                            {{ formatCurrency(simulationResult.total_contributions) }}
+                        </div>
+                        <p class="text-gray-600 leading-relaxed">
+                            Łączna wartość składek odprowadzonych do emerytury (zgromadzone + przyszłe)
+                        </p>
+                    </div>
 
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm">
-                        <CardHeader class="pb-3">
-                            <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-2">
-                                <div class="w-10 h-10 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(63,132,210)]/80 rounded-xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span>Czas do emerytury</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-4xl font-bold text-[rgb(63,132,210)] mb-2">
-                                {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
+                    <div class="bg-white border border-gray-200 shadow-sm p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-10 h-10 flex items-center justify-center" style="background-color: rgb(63, 132, 210);">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
                             </div>
-                            <p class="text-gray-600 leading-relaxed">
-                                Czas pozostały do osiągnięcia wieku emerytalnego i przejścia na emeryturę
-                            </p>
-                        </CardContent>
-                    </Card>
+                            <h4 class="text-lg font-bold" style="color: rgb(0, 65, 110);">Czas do emerytury</h4>
+                        </div>
+                        <div class="text-4xl font-bold mb-2" style="color: rgb(63, 132, 210);">
+                            {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
+                        </div>
+                        <p class="text-gray-600 leading-relaxed">
+                            Czas pozostały do osiągnięcia wieku emerytalnego i przejścia na emeryturę
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Kluczowe wskaźniki ekonomiczne -->
                 <div v-if="simulationResult.economic_context" class="space-y-6">
                     <!-- Tytuł sekcji -->
                     <div class="text-center">
-                        <h3 class="text-2xl md:text-3xl font-bold text-white drop-shadow-lg mb-2">
+                        <h3 class="text-2xl md:text-3xl font-bold mb-2" style="color: rgb(0, 65, 110);">
                             Kluczowe wskaźniki Twojej emerytury
                         </h3>
-                        <p class="text-white/80 drop-shadow">
+                        <p class="text-gray-600">
                             Porównanie Twojego świadczenia z prognozami ekonomicznymi
                         </p>
                     </div>
 
                     <!-- Współczynnik zastąpienia - duża karta -->
-                    <Card class="shadow-2xl border-none bg-gradient-to-br from-[rgb(63,132,210)]/10 via-white to-[rgb(0,153,63)]/5 backdrop-blur-sm overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[rgb(63,132,210)]/10 to-transparent rounded-full -mr-32 -mt-32"></div>
-                        <CardContent class="p-8 md:p-10 relative">
-                            <div class="flex flex-col md:flex-row items-center gap-6">
-                                <div class="w-20 h-20 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
-                                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 text-center md:text-left">
-                                    <h4 class="text-lg font-semibold text-[rgb(0,65,110)] mb-2">
-                                        Stopa zastąpienia
-                                    </h4>
-                                    <div class="flex items-baseline gap-3 justify-center md:justify-start">
-                                        <span class="text-5xl md:text-6xl font-bold text-[rgb(63,132,210)]">
-                                            {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
-                                        </span>
-                                        <span class="text-lg text-gray-600">Twojego wynagrodzenia</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mt-3 leading-relaxed">
-                                        Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong> 
-                                        ostatniego wynagrodzenia przed przejściem na emeryturę 
-                                        ({{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}).
-                                    </p>
-                                </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-8 md:p-10">
+                        <div class="flex flex-col md:flex-row items-center gap-6">
+                            <div class="w-20 h-20 flex items-center justify-center rounded-2xl shadow-xl flex-shrink-0" style="background-color: rgb(63, 132, 210);">
+                                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                                </svg>
                             </div>
-                        </CardContent>
-                    </Card>
+                            <div class="flex-1 text-center md:text-left">
+                                <h4 class="text-lg font-semibold mb-2" style="color: rgb(0, 65, 110);">
+                                    Stopa zastąpienia
+                                </h4>
+                                <div class="flex items-baseline gap-3 justify-center md:justify-start">
+                                    <span class="text-5xl md:text-6xl font-bold" style="color: rgb(63, 132, 210);">
+                                        {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
+                                    </span>
+                                    <span class="text-lg text-gray-600">Twojego wynagrodzenia</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-3 leading-relaxed">
+                                    Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong> 
+                                    ostatniego wynagrodzenia przed przejściem na emeryturę 
+                                    ({{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Porównanie ze średnią emeryturą -->
-                    <Card class="shadow-2xl border-none bg-gradient-to-br from-[rgb(0,153,63)]/10 via-white to-[rgb(255,179,79)]/5 backdrop-blur-sm overflow-hidden">
-                        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-[rgb(0,153,63)]/10 to-transparent rounded-full -ml-32 -mb-32"></div>
-                        <CardContent class="p-8 md:p-10 relative">
+                    <div class="bg-white border border-gray-200 shadow-sm p-8 md:p-10">
                             <div class="flex flex-col md:flex-row items-center gap-6">
-                                <div class="w-20 h-20 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                                <div class="w-20 h-20 flex items-center justify-center rounded-2xl shadow-xl flex-shrink-0" style="background-color: rgb(0, 153, 63);">
                                     <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                                         <path d="M13 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1z" />
                                     </svg>
                                 </div>
                                 <div class="flex-1 text-center md:text-left">
-                                    <h4 class="text-lg font-semibold text-[rgb(0,65,110)] mb-2">
+                                    <h4 class="text-lg font-semibold mb-2" style="color: rgb(0, 65, 110);">
                                         Porównanie ze średnią krajową
                                     </h4>
                                     <div class="flex items-baseline gap-3 justify-center md:justify-start mb-3">
-                                        <span class="text-5xl md:text-6xl font-bold text-[rgb(0,153,63)]">
+                                        <span class="text-5xl md:text-6xl font-bold" style="color: rgb(0, 153, 63);">
                                             {{ simulationResult.economic_context.pension_to_average_ratio.toFixed(0) }}%
                                         </span>
                                         <span class="text-lg text-gray-600">średniej emerytury</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4 mt-4">
-                                        <div class="bg-white/70 rounded-xl p-4 border border-[rgb(190,195,206)]/30">
+                                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
                                             <p class="text-xs text-gray-600 mb-1">Twoja emerytura</p>
-                                            <p class="text-xl font-bold text-[rgb(0,65,110)]">
+                                            <p class="text-xl font-bold" style="color: rgb(0, 65, 110);">
                                                 {{ formatCurrency(simulationResult.monthly_pension) }}
                                             </p>
                                         </div>
-                                        <div class="bg-white/70 rounded-xl p-4 border border-[rgb(190,195,206)]/30">
+                                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
                                             <p class="text-xs text-gray-600 mb-1">Średnia w {{ formData.retirement_year }}</p>
-                                            <p class="text-xl font-bold text-[rgb(0,153,63)]">
+                                            <p class="text-xl font-bold" style="color: rgb(0, 153, 63);">
                                                 {{ formatCurrency(simulationResult.economic_context.average_pension_in_retirement_year) }}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                    </div>
 
                     <!-- Inflacja -->
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white backdrop-blur-sm">
-                        <CardContent class="p-6">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(240,94,94)]/80 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-sm font-semibold text-[rgb(0,65,110)] mb-1">
-                                        Inflacja skumulowana do roku emerytury
-                                    </h4>
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-3xl font-bold text-[rgb(240,94,94)]">
-                                            {{ simulationResult.economic_context.cumulative_inflation.toFixed(1) }}%
-                                        </span>
-                                        <span class="text-sm text-gray-600">w okresie {{ simulationResult.years_to_retirement }} lat</span>
-                                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-lg flex-shrink-0" style="background-color: rgb(240, 94, 94);">
+                                <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-semibold mb-1" style="color: rgb(0, 65, 110);">
+                                    Inflacja skumulowana do roku emerytury
+                                </h4>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-3xl font-bold" style="color: rgb(240, 94, 94);">
+                                        {{ simulationResult.economic_context.cumulative_inflation.toFixed(1) }}%
+                                    </span>
+                                    <span class="text-sm text-gray-600">w okresie {{ simulationResult.years_to_retirement }} lat</span>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Prognozy makroekonomiczne -->
-                <Card v-if="simulationResult.economic_context" class="shadow-xl border-none bg-gradient-to-br from-white to-[rgb(0,153,63)]/5 backdrop-blur-sm">
-                    <CardHeader class="bg-gradient-to-r from-[rgb(0,153,63)]/10 to-transparent">
-                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-xl flex items-center justify-center">
+                <div v-if="simulationResult.economic_context" class="bg-white border border-gray-200 shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background-color: rgb(0, 153, 63);">
                                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
                             </div>
                             <div>
-                                <div class="text-xl">Prognozy ekonomiczne ZUS</div>
+                                <div class="text-xl font-bold" style="color: rgb(0, 65, 110);">Prognozy ekonomiczne ZUS</div>
                                 <div class="text-sm font-normal text-gray-600 mt-1">{{ simulationResult.economic_context.variant_name }}</div>
                             </div>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-6">
+                        </div>
+                    </div>
+                    <div class="p-6">
                         <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-sm text-gray-600 font-medium">Średni wzrost PKB (rocznie)</p>
-                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <div class="text-2xl font-bold text-[rgb(0,153,63)]">
+                                <div class="text-2xl font-bold" style="color: rgb(0, 153, 63);">
                                     {{ simulationResult.economic_context.avg_gdp_growth.toFixed(2) }}%
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">W okresie do emerytury</p>
                             </div>
 
-                            <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-sm text-gray-600 font-medium">Średnia stopa bezrobocia</p>
-                                    <svg class="w-5 h-5 text-[rgb(63,132,210)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <div class="text-2xl font-bold text-[rgb(63,132,210)]">
+                                <div class="text-2xl font-bold" style="color: rgb(63, 132, 210);">
                                     {{ simulationResult.economic_context.avg_unemployment_rate.toFixed(1) }}%
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">Prognoza ZUS do {{ formData.retirement_year }}</p>
                             </div>
                         </div>
 
-                        <div class="mt-6 bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(63,132,210)]">
+                        <div class="mt-6 bg-gray-50 p-5 rounded-xl border-l-4" style="border-left-color: rgb(63, 132, 210);">
                             <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-[rgb(63,132,210)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
@@ -1275,45 +1412,45 @@ onMounted(() => {
                                 </p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Wpływ zwolnień lekarskich - ZAWSZE pokazuj -->
-                <Card class="shadow-xl border-2 border-[rgb(255,179,79)] bg-gradient-to-br from-white to-[rgb(255,179,79)]/5 backdrop-blur-sm">
-                    <CardHeader class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent">
-                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center">
+                <div class="bg-white border border-gray-200 shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-xl" style="background-color: rgb(255, 179, 79);">
                                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <span>Wpływ zwolnień lekarskich na emeryturę</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-6">
+                            <span class="text-xl font-bold" style="color: rgb(0, 65, 110);">Wpływ zwolnień lekarskich na emeryturę</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
                         <!-- Porównanie z/bez zwolnień -->
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <div class="bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white p-5 rounded-xl border-2 border-[rgb(0,153,63)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center gap-2 mb-3">
-                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                     </svg>
                                     <p class="text-sm text-gray-600 font-bold">Bez uwzględnienia zwolnień</p>
                                 </div>
-                                <div class="text-3xl font-bold text-[rgb(0,153,63)] mb-2">
+                                <div class="text-3xl font-bold mb-2" style="color: rgb(0, 153, 63);">
                                     {{ formatCurrency(simulationResult.monthly_pension_without_sick_leave) }}
                                 </div>
                                 <p class="text-xs text-gray-600">Przy idealnej frekwencji</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white p-5 rounded-xl border-2 border-[rgb(240,94,94)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center gap-2 mb-3">
-                                    <svg class="w-5 h-5 text-[rgb(240,94,94)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(240, 94, 94);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
                                     </svg>
                                     <p class="text-sm text-gray-600 font-bold">Z uwzględnieniem zwolnień</p>
                                 </div>
-                                <div class="text-3xl font-bold text-[rgb(240,94,94)] mb-2">
+                                <div class="text-3xl font-bold mb-2" style="color: rgb(240, 94, 94);">
                                     {{ formatCurrency(simulationResult.monthly_pension) }}
                                 </div>
                                 <p class="text-xs text-gray-600">
@@ -1323,9 +1460,9 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 mb-6">
+                        <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 mb-6">
                             <div class="flex items-center gap-3 mb-3">
-                                <svg class="w-6 h-6 text-[rgb(0,65,110)]" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-6 h-6" style="color: rgb(0, 65, 110);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 font-bold">Statystyka zwolnień lekarskich</p>
@@ -1333,20 +1470,20 @@ onMounted(() => {
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <p class="text-xs text-gray-600 mb-1">Łączna liczba dni</p>
-                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">{{ simulationResult.sick_leave_impact.average_days }}</p>
+                                    <p class="text-2xl font-bold" style="color: rgb(0, 65, 110);">{{ simulationResult.sick_leave_impact.average_days }}</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-600 mb-1">Średnio rocznie</p>
-                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">
+                                    <p class="text-2xl font-bold" style="color: rgb(0, 65, 110);">
                                         {{ (simulationResult.sick_leave_impact.average_days / (simulationResult.years_to_retirement + (parseInt(formData.age) - workStartAge))).toFixed(1) }} dni/rok
                                     </p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(255,179,79)]">
+                        <div class="bg-gray-50 p-5 rounded-xl border-l-4" style="border-left-color: rgb(255, 179, 79);">
                             <div class="flex items-start gap-3">
-                                <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
@@ -1358,34 +1495,34 @@ onMounted(() => {
                                 </p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Wykres wzrostu kapitału - WIZUALIZACJA -->
-                <Card v-if="simulationResult.account_growth_forecast && simulationResult.account_growth_forecast.length > 0" class="shadow-2xl border-none bg-white">
-                    <CardHeader class="bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent border-b-2 border-[rgb(63,132,210)]">
-                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-xl flex items-center justify-center shadow-lg">
+                <div v-if="simulationResult.account_growth_forecast && simulationResult.account_growth_forecast.length > 0" class="bg-white border border-gray-200 shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(63, 132, 210);">
                                 <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
                             </div>
                             <div>
-                                <div class="text-2xl font-bold">Wzrost Twojego kapitału emerytalnego</div>
+                                <div class="text-2xl font-bold" style="color: rgb(0, 65, 110);">Wzrost Twojego kapitału emerytalnego</div>
                                 <div class="text-sm font-normal text-gray-600 mt-1">Prognoza rok po roku do emerytury</div>
                             </div>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-8">
+                        </div>
+                    </div>
+                    <div class="p-8">
                         <!-- Wykres liniowy z obszarem -->
                         <div class="mb-8">
-                            <h4 class="text-lg font-bold text-[rgb(0,65,110)] mb-4 flex items-center gap-2">
+                            <h4 class="text-lg font-bold mb-4 flex items-center gap-2" style="color: rgb(0, 65, 110);">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                                 </svg>
                                 Wykres wzrostu kapitału w czasie
                             </h4>
-                            <div class="bg-gradient-to-br from-gray-50 to-white p-8 rounded-xl border-2 border-gray-200">
+                            <div class="bg-gray-50 p-8 rounded-xl border border-gray-200">
                                 <!-- Obszar wykresu -->
                                 <div class="relative" style="height: 500px;">
                                     <!-- Linie siatki poziomej i wartości -->
@@ -1458,11 +1595,11 @@ onMounted(() => {
                                                                 <span class="text-gray-300">Kapitał:</span>
                                                                 <span class="font-bold">{{ formatCurrency(item.total_balance) }}</span>
                                                             </div>
-                                                            <div class="flex justify-between gap-4 text-[rgb(0,153,63)]">
+                                                            <div class="flex justify-between gap-4" style="color: rgb(0, 153, 63);">
                                                                 <span>Konto:</span>
                                                                 <span class="font-semibold">{{ formatCurrency(item.account_balance) }}</span>
                                                             </div>
-                                                            <div class="flex justify-between gap-4 text-[rgb(63,132,210)]">
+                                                            <div class="flex justify-between gap-4" style="color: rgb(63, 132, 210);">
                                                                 <span>Subkonto:</span>
                                                                 <span class="font-semibold">{{ formatCurrency(item.subaccount_balance) }}</span>
                                                             </div>
@@ -1478,7 +1615,8 @@ onMounted(() => {
                                         <div
                                             v-for="(item, index) in simulationResult.account_growth_forecast.filter((_, i) => i % Math.max(1, Math.floor(simulationResult.account_growth_forecast.length / 10)) === 0 || i === simulationResult.account_growth_forecast.length - 1)"
                                             :key="'label-' + item.year"
-                                            class="text-sm font-bold text-[rgb(0,65,110)]"
+                                            class="text-sm font-bold"
+                                            style="color: rgb(0, 65, 110);"
                                         >
                                             <div>{{ item.year }}</div>
                                             <div class="text-xs text-gray-500 font-normal">{{ item.age }} lat</div>
@@ -1489,24 +1627,24 @@ onMounted(() => {
                                 <!-- Legenda rozszerzona -->
                                 <div class="mt-12 pt-6 border-t-2 border-gray-300">
                                     <div class="grid grid-cols-3 gap-6">
-                                        <div class="bg-white p-4 rounded-lg border-2 border-[rgb(0,153,63)] shadow-sm">
+                                        <div class="bg-white p-4 rounded-lg border-2 shadow-sm" style="border-color: rgb(0, 153, 63);">
                                             <div class="flex items-center gap-2 mb-2">
                                                 <div class="w-4 h-4 bg-[rgb(0,153,63)] rounded-full"></div>
-                                                <span class="text-sm font-bold text-[rgb(0,65,110)]">Kapitał łączny</span>
+                                                <span class="text-sm font-bold" style="color: rgb(0, 65, 110);">Kapitał łączny</span>
                                             </div>
                                             <p class="text-xs text-gray-600">Suma konta głównego i subkonta</p>
                                         </div>
-                                        <div class="bg-white p-4 rounded-lg border-2 border-[rgb(0,153,63)]/50 shadow-sm">
+                                        <div class="bg-white p-4 rounded-lg border-2 shadow-sm" style="border-color: rgba(0, 153, 63, 0.5);">
                                             <div class="flex items-center gap-2 mb-2">
                                                 <div class="w-4 h-4 bg-[rgb(0,153,63)]/70 rounded"></div>
-                                                <span class="text-sm font-bold text-[rgb(0,65,110)]">Konto główne (77.78%)</span>
+                                                <span class="text-sm font-bold" style="color: rgb(0, 65, 110);">Konto główne (77.78%)</span>
                                             </div>
                                             <p class="text-xs text-gray-600">Główna część składki emerytalnej</p>
                                         </div>
-                                        <div class="bg-white p-4 rounded-lg border-2 border-[rgb(63,132,210)] shadow-sm">
+                                        <div class="bg-white p-4 rounded-lg border-2 shadow-sm" style="border-color: rgb(63, 132, 210);">
                                             <div class="flex items-center gap-2 mb-2">
                                                 <div class="w-4 h-4 bg-[rgb(63,132,210)] rounded"></div>
-                                                <span class="text-sm font-bold text-[rgb(0,65,110)]">Subkonto (22.22%)</span>
+                                                <span class="text-sm font-bold" style="color: rgb(0, 65, 110);">Subkonto (22.22%)</span>
                                             </div>
                                             <p class="text-xs text-gray-600">Część składki do wypłaty jednorazowej</p>
                                         </div>
@@ -1517,7 +1655,7 @@ onMounted(() => {
 
                         <!-- Szczegółowa tabela -->
                         <div>
-                            <h4 class="text-lg font-bold text-[rgb(0,65,110)] mb-4 flex items-center gap-2">
+                            <h4 class="text-lg font-bold mb-4 flex items-center gap-2" style="color: rgb(0, 65, 110);">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd" />
                                 </svg>
@@ -1525,7 +1663,7 @@ onMounted(() => {
                             </h4>
                             <div class="overflow-x-auto rounded-xl border-2 border-gray-200">
                                 <table class="w-full">
-                                    <thead class="bg-gradient-to-r from-[rgb(63,132,210)] to-[rgb(0,153,63)] text-white">
+                                    <thead class="text-white" style="background-color: rgb(63, 132, 210);">
                                         <tr>
                                             <th class="px-4 py-3 text-left font-bold">ROK</th>
                                             <th class="px-4 py-3 text-left font-bold">WIEK</th>
@@ -1545,22 +1683,22 @@ onMounted(() => {
                                                 index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                                             ]"
                                         >
-                                            <td class="px-4 py-3 font-bold text-[rgb(0,65,110)]">{{ item.year }}</td>
+                                            <td class="px-4 py-3 font-bold" style="color: rgb(0, 65, 110);">{{ item.year }}</td>
                                             <td class="px-4 py-3 text-gray-700">{{ item.age }} lat</td>
-                                            <td class="px-4 py-3 text-right font-semibold text-[rgb(0,153,63)]">
+                                            <td class="px-4 py-3 text-right font-semibold" style="color: rgb(0, 153, 63);">
                                                 {{ formatCurrency(item.account_balance) }}
                                             </td>
-                                            <td class="px-4 py-3 text-right font-semibold text-[rgb(63,132,210)]">
+                                            <td class="px-4 py-3 text-right font-semibold" style="color: rgb(63, 132, 210);">
                                                 {{ formatCurrency(item.subaccount_balance) }}
                                             </td>
                                             <td class="px-4 py-3 text-right text-gray-700">
                                                 {{ formatCurrency(item.annual_contribution) }}
                                             </td>
-                                            <td class="px-4 py-3 text-right font-bold text-[rgb(0,65,110)] text-lg">
+                                            <td class="px-4 py-3 text-right font-bold text-lg" style="color: rgb(0, 65, 110);">
                                                 {{ formatCurrency(item.total_balance) }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
-                                                <span v-if="index > 0" class="inline-flex items-center gap-1 text-[rgb(0,153,63)] font-semibold">
+                                                <span v-if="index > 0" class="inline-flex items-center gap-1 font-semibold" style="color: rgb(0, 153, 63);">
                                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                                     </svg>
@@ -1570,7 +1708,7 @@ onMounted(() => {
                                             </td>
                                         </tr>
                                     </tbody>
-                                    <tfoot class="bg-gradient-to-r from-[rgb(0,153,63)] to-[rgb(63,132,210)] text-white font-bold">
+                                    <tfoot class="text-white font-bold" style="background-color: rgb(0, 153, 63);">
                                         <tr>
                                             <td colspan="5" class="px-4 py-4 text-right text-lg">KAPITAŁ KOŃCOWY:</td>
                                             <td class="px-4 py-4 text-right text-2xl">
@@ -1585,118 +1723,118 @@ onMounted(() => {
 
                         <!-- Kluczowe statystyki -->
                         <div class="grid md:grid-cols-3 gap-4 mt-6">
-                            <div class="bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white p-5 rounded-xl border-2 border-[rgb(0,153,63)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(0, 153, 63);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
                                     </svg>
                                     <p class="text-sm text-gray-600 font-medium">Średni wzrost roczny</p>
                                 </div>
-                                <p class="text-3xl font-bold text-[rgb(0,153,63)]">
+                                <p class="text-3xl font-bold" style="color: rgb(0, 153, 63);">
                                     {{formatCurrency((simulationResult.account_growth_forecast[simulationResult.account_growth_forecast.length - 1].total_balance - simulationResult.account_growth_forecast[0].total_balance) / simulationResult.account_growth_forecast.length) }}
                                 </p>
                             </div>
 
-                            <div class="bg-gradient-to-br from-[rgb(63,132,210)]/10 to-white p-5 rounded-xl border-2 border-[rgb(63,132,210)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <svg class="w-5 h-5 text-[rgb(63,132,210)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(63, 132, 210);" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
                                     </svg>
                                     <p class="text-sm text-gray-600 font-medium">Łączne składki</p>
                                 </div>
-                                <p class="text-3xl font-bold text-[rgb(63,132,210)]">
+                                <p class="text-3xl font-bold" style="color: rgb(63, 132, 210);">
                                     {{ formatCurrency(simulationResult.account_growth_forecast.reduce((sum, item) => sum + item.annual_contribution, 0)) }}
                                 </p>
                             </div>
 
-                            <div class="bg-gradient-to-br from-[rgb(255,179,79)]/10 to-white p-5 rounded-xl border-2 border-[rgb(255,179,79)]/30">
+                            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <svg class="w-5 h-5 text-[rgb(255,179,79)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" style="color: rgb(255, 179, 79);" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7z" clip-rule="evenodd" />
                                     </svg>
                                     <p class="text-sm text-gray-600 font-medium">Wzrost % całkowity</p>
                                 </div>
-                                <p class="text-3xl font-bold text-[rgb(255,179,79)]">
+                                <p class="text-3xl font-bold" style="color: rgb(255, 179, 79);">
                                     {{ ((simulationResult.account_growth_forecast[simulationResult.account_growth_forecast.length - 1].total_balance / simulationResult.account_growth_forecast[0].total_balance - 1) * 100).toFixed(1) }}%
                                 </p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Raport PDF -->
-                <Card class="shadow-2xl border-4 border-[rgb(255,179,79)] bg-gradient-to-br from-[rgb(255,179,79)]/10 to-white">
-                    <CardHeader class="bg-gradient-to-r from-[rgb(255,179,79)]/20 to-transparent border-b-2 border-[rgb(255,179,79)]">
-                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="bg-white border border-gray-200 shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(255, 179, 79);">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
-                                <div class="text-2xl font-bold">Pobierz raport PDF</div>
+                                <div class="text-2xl font-bold" style="color: rgb(0, 65, 110);">Pobierz raport PDF</div>
                                 <div class="text-sm font-normal text-gray-600 mt-1">Szczegółowy raport z Twojej prognozy emerytalnej</div>
                             </div>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-8">
+                        </div>
+                    </div>
+                    <div class="p-8">
                         <div class="space-y-6">
                             <!-- Informacja o zawartości raportu -->
-                            <div class="bg-white p-6 rounded-xl border-2 border-[rgb(255,179,79)]/30">
-                                <h4 class="text-lg font-bold text-[rgb(0,65,110)] mb-4">📄 Raport będzie zawierał:</h4>
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                <h4 class="text-lg font-bold mb-4" style="color: rgb(0, 65, 110);">📄 Raport będzie zawierał:</h4>
                                 <div class="grid md:grid-cols-2 gap-4">
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Twój profil emerytalny</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Twój profil emerytalny</p>
                                             <p class="text-sm text-gray-600">Wszystkie dane wejściowe</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Wyniki prognozy</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Wyniki prognozy</p>
                                             <p class="text-sm text-gray-600">Emerytura rzeczywista i urealniona</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Wykres wzrostu kapitału</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Wykres wzrostu kapitału</p>
                                             <p class="text-sm text-gray-600">Wizualizacja rok po roku</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Porównania ze średnią</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Porównania ze średnią</p>
                                             <p class="text-sm text-gray-600">Kontekst krajowy</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Scenariusze odroczenia</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Scenariusze odroczenia</p>
                                             <p class="text-sm text-gray-600">Co jeśli pracujesz dłużej</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style="color: rgb(0, 153, 63);">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <p class="font-semibold text-[rgb(0,65,110)]">Komentarze edukacyjne</p>
+                                            <p class="font-semibold" style="color: rgb(0, 65, 110);">Komentarze edukacyjne</p>
                                             <p class="text-sm text-gray-600">Wyjaśnienia i rekomendacje</p>
                                         </div>
                                     </div>
@@ -1704,10 +1842,11 @@ onMounted(() => {
                             </div>
 
                             <!-- Przycisk pobierania -->
-                            <Button
+                            <button
                                 @click="generatePDF"
                                 :disabled="isGeneratingPDF"
-                                class="w-full h-20 text-xl font-bold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 text-white transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                class="w-full h-20 text-xl font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
+                                style="background-color: rgb(255, 179, 79);"
                             >
                                 <svg v-if="isGeneratingPDF" class="animate-spin -ml-1 mr-3 h-7 w-7 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1717,50 +1856,52 @@ onMounted(() => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 {{ isGeneratingPDF ? 'Generuję raport PDF...' : '📄 Pobierz szczegółowy raport PDF' }}
-                            </Button>
+                            </button>
 
                             <p class="text-center text-sm text-gray-600">
                                 Raport zostanie wygenerowany w formacie PDF i automatycznie pobrany na Twoje urządzenie
                             </p>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Udostępnianie symulacji -->
-                <Card class="shadow-2xl border-4 border-[rgb(0,153,63)] bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white">
-                    <CardHeader class="bg-gradient-to-r from-[rgb(0,153,63)]/20 to-transparent border-b-2 border-[rgb(0,153,63)]">
-                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="bg-white border border-gray-200 shadow-sm">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-xl" style="background-color: rgb(0, 153, 63);">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                                 </svg>
                             </div>
                             <div>
-                                <div class="text-2xl font-bold">Udostępnij symulację</div>
+                                <div class="text-2xl font-bold" style="color: rgb(0, 65, 110);">Udostępnij symulację</div>
                                 <div class="text-sm font-normal text-gray-600 mt-1">Wyślij link do swojej prognozy emerytalnej</div>
                             </div>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-8">
+                        </div>
+                    </div>
+                    <div class="p-8">
                         <div class="space-y-6">
                             <!-- Link do udostępnienia -->
                             <div v-if="sessionUuid" class="space-y-4">
-                                <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                                     <div class="flex items-center gap-3 mb-3">
-                                        <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: rgb(0, 153, 63);">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                         </svg>
-                                        <span class="font-semibold text-[rgb(0,65,110)]">Link do udostępnienia:</span>
+                                        <span class="font-semibold" style="color: rgb(0, 65, 110);">Link do udostępnienia:</span>
                                     </div>
                                     <div class="flex gap-3">
                                         <input 
                                             :value="getShareUrl()" 
                                             readonly 
-                                            class="flex-1 p-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:border-[rgb(0,153,63)] focus:outline-none"
+                                            class="flex-1 p-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:outline-none"
+                                            style="border-color: rgb(0, 153, 63);"
                                         />
                                         <Button
                                             @click="copyShareLink"
-                                            class="px-6 py-3 bg-[rgb(0,153,63)] hover:bg-[rgb(0,153,63)]/90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                                            class="px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                                            style="background-color: rgb(0, 153, 63);"
                                         >
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1784,14 +1925,15 @@ onMounted(() => {
                                 <p class="text-sm text-gray-500">Wypełnij formularz powyżej i kliknij "Zaprognozuj szczegółową emeryturę"</p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 <!-- Przyciski akcji -->
                 <div class="flex flex-col sm:flex-row gap-4">
                     <Button
                         @click="resetForm"
-                        class="flex-1 h-14 text-lg font-semibold bg-white text-[rgb(0,65,110)] border-2 border-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white transition-all duration-300 shadow-lg"
+                        class="flex-1 h-14 text-lg font-semibold bg-white border-2 transition-all duration-300 shadow-lg"
+                        style="color: rgb(0, 65, 110); border-color: rgb(0, 65, 110);"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1800,7 +1942,8 @@ onMounted(() => {
                     </Button>
                     <Link
                         :href="home()"
-                        class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"
+                        class="flex-1 h-14 text-lg font-semibold text-white rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"
+                        style="background-color: rgb(255, 179, 79);"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -1814,11 +1957,11 @@ onMounted(() => {
         <!-- Footer -->
         <footer class="mt-16 pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20">
-                    <p class="text-white/90 text-sm">
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 text-center">
+                    <p class="text-gray-600 text-sm">
                         © 2025 Zakład Ubezpieczeń Społecznych
                     </p>
-                    <p class="text-white/70 text-xs mt-2">
+                    <p class="text-gray-500 text-xs mt-2">
                         Dashboard zaawansowanego prognozowania emerytur
                     </p>
                 </div>
@@ -1827,7 +1970,30 @@ onMounted(() => {
     </div>
 </template>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+</style>
+
 <style scoped>
+/* Czcionka Lato dla całej strony ZUS */
+.zus-page {
+  font-family: "Lato Regular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.zus-page * {
+  font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+button:focus,
+a:focus {
+  outline: 2px solid rgb(0, 153, 63);
+  outline-offset: 2px;
+}
+
 /* Poprawa widoczności tekstu w polach input */
 :deep(input) {
     color: rgb(0, 65, 110) !important;
@@ -1878,14 +2044,6 @@ onMounted(() => {
     animation: slideUp 0.5s ease-out;
 }
 
-/* Grid pattern tło */
-.bg-grid-white\/5 {
-    background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-
 /* Smooth scrolling */
 html {
     scroll-behavior: smooth;
@@ -1925,5 +2083,32 @@ html {
         font-size: 1.125rem;
     }
 }
-</style>
 
+/* Wysoki kontrast dla WCAG 2.0 */
+input:focus {
+    border-color: rgb(0, 153, 63) !important;
+    box-shadow: 0 0 0 3px rgba(0, 153, 63, 0.2);
+}
+
+button:focus {
+    outline: 2px solid rgb(0, 153, 63);
+    outline-offset: 2px;
+}
+
+/* Hover dla przycisków */
+button[type="submit"]:not(:disabled):hover {
+    opacity: 0.9;
+}
+
+/* Ukryj strzałki w input type="number" */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+</style>
