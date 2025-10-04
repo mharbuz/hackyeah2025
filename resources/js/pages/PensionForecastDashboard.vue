@@ -514,177 +514,223 @@ onMounted(() => {
                 
                 <CardContent class="p-6 md:p-8 lg:p-10">
                     <form @submit.prevent="handleSimulate" class="space-y-10">
-                        <!-- Dane osobowe -->
-                        <div class="grid md:grid-cols-4 gap-6">
-                            <!-- Wiek -->
-                            <div class="space-y-3">
-                                <Label for="age" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Obecny wiek <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <Input
-                                    id="age"
-                                    v-model="formData.age"
-                                    type="number"
-                                    min="18"
-                                    max="100"
-                                    placeholder="np. 35"
-                                    @blur="initializeHistoricalData"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    required
-                                />
-                            </div>
-
-                            <!-- Wiek rozpoczęcia pracy -->
-                            <div class="space-y-3">
-                                <Label for="work_start_age" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Wiek rozpoczęcia pracy
-                                </Label>
-                                <Input
-                                    id="work_start_age"
-                                    v-model.number="workStartAge"
-                                    type="number"
-                                    min="15"
-                                    max="65"
-                                    placeholder="np. 25"
-                                    @blur="initializeHistoricalData"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                />
-                                <p class="text-xs text-gray-600">
-                                    Od tego wieku generujemy historię
-                                </p>
-                            </div>
-
-                            <!-- Płeć -->
-                            <div class="space-y-3">
-                                <Label class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Płeć <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <div class="flex gap-3">
-                                    <button
-                                        type="button"
-                                        @click="formData.gender = 'male'"
-                                        :class="[
-                                            'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
-                                            formData.gender === 'male'
-                                                ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
-                                        ]"
-                                    >
-                                        Mężczyzna
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="formData.gender = 'female'"
-                                        :class="[
-                                            'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
-                                            formData.gender === 'female'
-                                                ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
-                                                : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
-                                        ]"
-                                    >
-                                        Kobieta
-                                    </button>
+                        <!-- SEKCJA 1: DANE PODSTAWOWE (wspólne z symulacją podstawową) -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(0,153,63)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    1
                                 </div>
-                                <p v-if="retirementAge" class="text-[rgb(0,153,63)] text-sm font-medium">
-                                    Wiek emerytalny: {{ retirementAge }} lat
-                                </p>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Informacje podstawowe
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                                    Wspólne z symulacją podstawową
+                                </span>
                             </div>
-
-                            <!-- Rok emerytury -->
-                            <div class="space-y-3">
-                                <Label for="retirement_year" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Rok emerytury <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <Input
-                                    id="retirement_year"
-                                    v-model="formData.retirement_year"
-                                    type="number"
-                                    :min="new Date().getFullYear()"
-                                    placeholder="np. 2055"
-                                    class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Wynagrodzenie i salda -->
-                        <div class="grid md:grid-cols-3 gap-6">
-                            <div class="space-y-3">
-                                <Label for="gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
-                                </Label>
-                                <div class="relative">
+                            
+                            <!-- Wiek, Płeć, Rok emerytury -->
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <!-- Wiek -->
+                                <div class="space-y-3">
+                                    <Label for="age" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Obecny wiek <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
                                     <Input
-                                        id="gross_salary"
-                                        v-model="formData.gross_salary"
+                                        id="age"
+                                        v-model="formData.age"
                                         type="number"
-                                        step="100"
-                                        placeholder="np. 5000"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        min="18"
+                                        max="100"
+                                        placeholder="np. 35"
+                                        @blur="initializeHistoricalData"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
                                         required
                                     />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                </div>
+
+                                <!-- Płeć -->
+                                <div class="space-y-3">
+                                    <Label class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Płeć <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <div class="flex gap-3">
+                                        <button
+                                            type="button"
+                                            @click="formData.gender = 'male'"
+                                            :class="[
+                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                formData.gender === 'male'
+                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                            ]"
+                                        >
+                                            Mężczyzna
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="formData.gender = 'female'"
+                                            :class="[
+                                                'flex-1 h-14 rounded-xl border-2 font-semibold text-base transition-all duration-300 hover:scale-105',
+                                                formData.gender === 'female'
+                                                    ? 'bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white border-transparent shadow-lg'
+                                                    : 'bg-white text-[rgb(0,65,110)] border-[rgb(190,195,206)] hover:border-[rgb(63,132,210)] hover:shadow-md'
+                                            ]"
+                                        >
+                                            Kobieta
+                                        </button>
+                                    </div>
+                                    <p v-if="retirementAge" class="text-[rgb(0,153,63)] text-sm font-medium">
+                                        Wiek emerytalny: {{ retirementAge }} lat
+                                    </p>
+                                </div>
+
+                                <!-- Rok emerytury -->
+                                <div class="space-y-3">
+                                    <Label for="retirement_year" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Rok emerytury <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <Input
+                                        id="retirement_year"
+                                        v-model="formData.retirement_year"
+                                        type="number"
+                                        :min="new Date().getFullYear()"
+                                        placeholder="np. 2055"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        required
+                                    />
                                 </div>
                             </div>
 
-                            <div class="space-y-3">
-                                <Label for="account_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Saldo konta ZUS
-                                </Label>
-                                <div class="relative">
-                                    <Input
-                                        id="account_balance"
-                                        v-model="formData.account_balance"
-                                        type="number"
-                                        step="100"
-                                        placeholder="opcjonalnie"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                            <!-- Wynagrodzenie i salda -->
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div class="space-y-3">
+                                    <Label for="gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="gross_salary"
+                                            v-model="formData.gross_salary"
+                                            type="number"
+                                            step="100"
+                                            placeholder="np. 5000"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                            required
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="space-y-3">
-                                <Label for="subaccount_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                    Saldo subkonta ZUS
-                                </Label>
-                                <div class="relative">
-                                    <Input
-                                        id="subaccount_balance"
-                                        v-model="formData.subaccount_balance"
-                                        type="number"
-                                        step="100"
-                                        placeholder="opcjonalnie"
-                                        class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                    />
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                <div class="space-y-3">
+                                    <Label for="account_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Saldo konta ZUS
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="account_balance"
+                                            v-model="formData.account_balance"
+                                            type="number"
+                                            step="100"
+                                            placeholder="opcjonalnie"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <Label for="subaccount_balance" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Saldo subkonta ZUS
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="subaccount_balance"
+                                            v-model="formData.subaccount_balance"
+                                            type="number"
+                                            step="100"
+                                            placeholder="opcjonalnie"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">zł</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Wskaźnik indeksacji -->
-                        <div class="space-y-3">
-                            <Label for="wage_indexation_rate" class="text-base font-semibold text-[rgb(0,65,110)]">
-                                Wskaźnik indeksacji wynagrodzeń (% rocznie)
-                            </Label>
-                            <div class="relative max-w-xs">
-                                <Input
-                                    id="wage_indexation_rate"
-                                    v-model="formData.wage_indexation_rate"
-                                    type="number"
-                                    step="0.1"
-                                    placeholder="5.0"
-                                    class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
-                                />
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">%</span>
-                            </div>
-                            <p class="text-sm text-gray-600">
-                                Prognozowany średnioroczny wzrost wynagrodzeń
-                            </p>
-                        </div>
-
-                        <!-- Przełącznik: Historia vs Przyszłość -->
+                        <!-- SEKCJA 2: DANE ZAAWANSOWANE (tylko dla dashboard prognozowania) -->
                         <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(255,179,79)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    2
+                                </div>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Dane zaawansowane
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-orange-100 px-3 py-1 rounded-full">
+                                    Tylko dla prognozy szczegółowej
+                                </span>
+                            </div>
+
+                            <!-- Wiek rozpoczęcia pracy i wskaźnik indeksacji -->
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- Wiek rozpoczęcia pracy -->
+                                <div class="space-y-3">
+                                    <Label for="work_start_age" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Wiek rozpoczęcia pracy
+                                    </Label>
+                                    <Input
+                                        id="work_start_age"
+                                        v-model.number="workStartAge"
+                                        type="number"
+                                        min="15"
+                                        max="65"
+                                        placeholder="np. 25"
+                                        @blur="initializeHistoricalData"
+                                        class="text-lg h-14 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                    />
+                                    <p class="text-xs text-gray-600">
+                                        Od tego wieku generujemy historię
+                                    </p>
+                                </div>
+
+                                <!-- Wskaźnik indeksacji -->
+                                <div class="space-y-3">
+                                    <Label for="wage_indexation_rate" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                        Wskaźnik indeksacji wynagrodzeń (% rocznie)
+                                    </Label>
+                                    <div class="relative">
+                                        <Input
+                                            id="wage_indexation_rate"
+                                            v-model="formData.wage_indexation_rate"
+                                            type="number"
+                                            step="0.1"
+                                            placeholder="5.0"
+                                            class="text-lg h-14 pr-12 font-bold text-[rgb(0,65,110)] bg-white border-2"
+                                        />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-400">%</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        Prognozowany średnioroczny wzrost wynagrodzeń
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 3: DANE HISTORYCZNE I PRZYSZŁOŚCIOWE -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 pb-3 border-b-2 border-[rgb(63,132,210)]">
+                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,65,110)] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                    3
+                                </div>
+                                <h3 class="text-xl md:text-2xl font-bold text-[rgb(0,65,110)]">
+                                    Dane historyczne i przyszłościowe
+                                </h3>
+                                <span class="text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full">
+                                    Szczegółowa analiza zatrudnienia
+                                </span>
+                            </div>
+
+                            <!-- Przełącznik: Historia vs Przyszłość -->
                             <div class="flex gap-3 bg-gray-100 p-2 rounded-xl">
                                 <button
                                     type="button"
