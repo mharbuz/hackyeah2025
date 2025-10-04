@@ -917,7 +917,7 @@ const resetForm = () => {
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                             </svg>
-                            <span>Ważne informacje</span>
+                            <span>Ważne informacje o symulacji</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -928,7 +928,7 @@ const resetForm = () => {
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <span class="leading-relaxed">Prognozy są szacunkowe i opierają się na obecnych przepisach oraz założeniu stałego wynagrodzenia skorygowanego o średni wzrost płac</span>
+                                <span class="leading-relaxed">Obliczenia bazują na oficjalnych prognozach demograficzno-ekonomicznych ZUS do 2080 roku z uwzględnieniem realnych wskaźników PKB, inflacji i bezrobocia</span>
                             </li>
                             <li class="flex items-start gap-3 text-gray-700">
                                 <div class="w-6 h-6 bg-[rgb(0,153,63)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -936,7 +936,7 @@ const resetForm = () => {
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <span class="leading-relaxed">Symulacja uwzględnia średni wzrost wynagrodzeń w Polsce (5% rocznie) oraz waloryzację składek</span>
+                                <span class="leading-relaxed">Składka emerytalna wynosi 19,52% wynagrodzenia brutto, z czego 12,22% trafia na Twoje indywidualne konto w ZUS</span>
                             </li>
                             <li class="flex items-start gap-3 text-gray-700">
                                 <div class="w-6 h-6 bg-[rgb(0,153,63)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -944,15 +944,31 @@ const resetForm = () => {
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <span class="leading-relaxed">Rzeczywista emerytura może się różnić w zależności od zmian w przepisach, sytuacji ekonomicznej oraz indywidualnej ścieżki kariery</span>
+                                <span class="leading-relaxed">Wysokość emerytury jest ilorazem zgromadzonego kapitału i średniego dalszego trwania życia według tablic GUS (kobiety: 25 lat, mężczyźni: 20 lat)</span>
                             </li>
                             <li class="flex items-start gap-3 text-gray-700">
-                                <div class="w-6 h-6 bg-[rgb(0,153,63)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                <div class="w-6 h-6 bg-[rgb(255,179,79)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-[rgb(255,179,79)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                                <span class="leading-relaxed">Zakładamy, że emerytura będzie przyznana w styczniu roku osiągnięcia wieku emerytalnego</span>
+                                <span class="leading-relaxed">Symulacja uwzględnia waloryzację składek (wzrost o 5% rocznie) oraz prognozy wzrostu płac, ale nie może przewidzieć zmian prawnych w systemie emerytalnym</span>
+                            </li>
+                            <li class="flex items-start gap-3 text-gray-700">
+                                <div class="w-6 h-6 bg-[rgb(63,132,210)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-[rgb(63,132,210)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <span class="leading-relaxed">Jeśli nie podano salda kont, system oszacował je na podstawie zakładanego rozpoczęcia pracy w wieku 25 lat i stałych wpłat składek od Twojego obecnego wynagrodzenia</span>
+                            </li>
+                            <li class="flex items-start gap-3 text-gray-700">
+                                <div class="w-6 h-6 bg-[rgb(240,94,94)]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-[rgb(240,94,94)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <span class="leading-relaxed">Rzeczywista emerytura może się różnić z uwagi na: przerwy w zatrudnieniu, zmiany wynagrodzenia, reformy emerytalne, faktyczny wzrost gospodarczy oraz realną długość życia</span>
                             </li>
                         </ul>
                     </CardContent>
