@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed, watch, reactive, onMounted } from 'vue';
+import { ref, computed, watch, reactive, onMounted, nextTick } from 'vue';
 import { useToast } from 'vue-toastification';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
@@ -229,13 +229,12 @@ const validateForm = (): boolean => {
 
 // Obsługa symulacji
 const handleSimulate = async () => {
-    if (!validateForm()) {
-        return;
-    }
-    
-    isSubmitting.value = true;
-    
     try {
+        if (!validateForm()) {
+            return;
+        }
+        
+        isSubmitting.value = true;
         const requestBody: any = {
             age: parseInt(formData.value.age),
             gender: formData.value.gender,
@@ -379,35 +378,16 @@ const copyShareLink = async () => {
 
 // Generowanie raportu PDF
 const generatePDF = async () => {
-    if (!simulationResult.value) return;
+    if (!simulationResult.value || !props.sessionUuid) return;
     
     isGeneratingPDF.value = true;
     
     try {
-        const response = await fetch('/api/pension/generate-pdf-report', {
-            method: 'POST',
+        const response = await fetch(`/api/pension/pdf-report?session=${props.sessionUuid}`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify({
-                // Dane wejściowe
-                profile: {
-                    age: parseInt(formData.value.age),
-                    gender: formData.value.gender,
-                    work_start_age: workStartAge.value,
-                    current_gross_salary: parseFloat(formData.value.current_gross_salary),
-                    retirement_year: parseInt(formData.value.retirement_year),
-                    account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
-                    subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
-                    wage_indexation_rate: parseFloat(formData.value.wage_indexation_rate),
-                },
-                // Wyniki symulacji
-                simulation_results: simulationResult.value,
-                // Dane historyczne i przyszłościowe
-                historical_data: historicalData.value,
-                future_data: futureData.value,
-            })
+            }
         });
         
         if (!response.ok) {
@@ -441,15 +421,22 @@ const generatePDF = async () => {
 // Populate form with existing data if available
 onMounted(() => {
     if (props.existingFormData) {
-        formData.value = {
-            age: props.existingFormData.age?.toString() || '',
-            gender: props.existingFormData.gender || '',
-            gross_salary: props.existingFormData.gross_salary?.toString() || '',
-            retirement_year: props.existingFormData.retirement_year?.toString() || '',
-            account_balance: props.existingFormData.account_balance?.toString() || '',
-            subaccount_balance: props.existingFormData.subaccount_balance?.toString() || '',
-            wage_indexation_rate: props.existingFormData.wage_indexation_rate?.toString() || '5.0'
-        };
+        // Use nextTick to ensure DOM is ready and avoid Vue reactivity issues
+        nextTick(() => {
+            try {
+                formData.value = {
+                    age: props.existingFormData.age?.toString() || '',
+                    gender: props.existingFormData.gender || '',
+                    gross_salary: props.existingFormData.gross_salary?.toString() || '',
+                    retirement_year: props.existingFormData.retirement_year?.toString() || '',
+                    account_balance: props.existingFormData.account_balance?.toString() || '',
+                    subaccount_balance: props.existingFormData.subaccount_balance?.toString() || '',
+                    wage_indexation_rate: props.existingFormData.wage_indexation_rate?.toString() || '5.0'
+                };
+            } catch (error) {
+                console.error('Error populating form data:', error);
+            }
+        });
         
         // Populate historical data if available
         if (props.existingFormData.historical_data && Array.isArray(props.existingFormData.historical_data)) {
@@ -1141,12 +1128,12 @@ onMounted(() => {
                                     </h4>
                                     <div class="flex items-baseline gap-3 justify-center md:justify-start">
                                         <span class="text-5xl md:text-6xl font-bold text-[rgb(63,132,210)]">
-                                            {{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%
+                                            {{ (simulationResult.economic_context?.replacement_rate || 0).toFixed(1) }}%
                                         </span>
                                         <span class="text-lg text-gray-600">Twojego wynagrodzenia</span>
                                     </div>
                                     <p class="text-sm text-gray-600 mt-3 leading-relaxed">
-                                        Twoja emerytura będzie stanowić <strong>{{ simulationResult.economic_context.replacement_rate.toFixed(1) }}%</strong> 
+                                        Twoja emerytura będzie stanowić <strong>{{ (simulationResult.economic_context?.replacement_rate || 0).toFixed(1) }}%</strong> 
                                         ostatniego wynagrodzenia przed przejściem na emeryturę 
                                         ({{ formatCurrency(simulationResult.economic_context.future_gross_salary) }}).
                                     </p>
@@ -1172,7 +1159,7 @@ onMounted(() => {
                                     </h4>
                                     <div class="flex items-baseline gap-3 justify-center md:justify-start mb-3">
                                         <span class="text-5xl md:text-6xl font-bold text-[rgb(0,153,63)]">
-                                            {{ simulationResult.economic_context.pension_to_average_ratio.toFixed(0) }}%
+                                            {{ (simulationResult.economic_context?.pension_to_average_ratio || 0).toFixed(0) }}%
                                         </span>
                                         <span class="text-lg text-gray-600">średniej emerytury</span>
                                     </div>
@@ -1210,7 +1197,7 @@ onMounted(() => {
                                     </h4>
                                     <div class="flex items-baseline gap-2">
                                         <span class="text-3xl font-bold text-[rgb(240,94,94)]">
-                                            {{ simulationResult.economic_context.cumulative_inflation.toFixed(1) }}%
+                                            {{ (simulationResult.economic_context?.cumulative_inflation || 0).toFixed(1) }}%
                                         </span>
                                         <span class="text-sm text-gray-600">w okresie {{ simulationResult.years_to_retirement }} lat</span>
                                     </div>
@@ -1245,7 +1232,7 @@ onMounted(() => {
                                     </svg>
                                 </div>
                                 <div class="text-2xl font-bold text-[rgb(0,153,63)]">
-                                    {{ simulationResult.economic_context.avg_gdp_growth.toFixed(2) }}%
+                                    {{ (simulationResult.economic_context?.avg_gdp_growth || 0).toFixed(2) }}%
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">W okresie do emerytury</p>
                             </div>
@@ -1258,7 +1245,7 @@ onMounted(() => {
                                     </svg>
                                 </div>
                                 <div class="text-2xl font-bold text-[rgb(63,132,210)]">
-                                    {{ simulationResult.economic_context.avg_unemployment_rate.toFixed(1) }}%
+                                    {{ (simulationResult.economic_context?.avg_unemployment_rate || 0).toFixed(1) }}%
                                 </div>
                                 <p class="text-xs text-gray-500 mt-2">Prognoza ZUS do {{ formData.retirement_year }}</p>
                             </div>
@@ -1317,8 +1304,8 @@ onMounted(() => {
                                     {{ formatCurrency(simulationResult.monthly_pension) }}
                                 </div>
                                 <p class="text-xs text-gray-600">
-                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }} 
-                                    ({{ simulationResult.sick_leave_impact.percentage_reduction.toFixed(2) }}%)
+                                    -{{ formatCurrency(simulationResult.sick_leave_impact?.pension_reduction || 0) }} 
+                                    ({{ (simulationResult.sick_leave_impact?.percentage_reduction || 0).toFixed(2) }}%)
                                 </p>
                             </div>
                         </div>
@@ -1333,12 +1320,12 @@ onMounted(() => {
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <p class="text-xs text-gray-600 mb-1">Łączna liczba dni</p>
-                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">{{ simulationResult.sick_leave_impact.average_days }}</p>
+                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">{{ simulationResult.sick_leave_impact?.average_days || 0 }}</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-600 mb-1">Średnio rocznie</p>
                                     <p class="text-2xl font-bold text-[rgb(0,65,110)]">
-                                        {{ (simulationResult.sick_leave_impact.average_days / (simulationResult.years_to_retirement + (parseInt(formData.age) - workStartAge))).toFixed(1) }} dni/rok
+                                        {{ ((simulationResult.sick_leave_impact?.average_days || 0) / (simulationResult.years_to_retirement + (parseInt(formData.age) - workStartAge))).toFixed(1) }} dni/rok
                                     </p>
                                 </div>
                             </div>
@@ -1352,7 +1339,7 @@ onMounted(() => {
                                 <p class="text-sm text-gray-700 leading-relaxed">
                                     <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
                                     (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce 
-                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni, 
+                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact?.average_days || 0 }} dni, 
                                     co realnie wpływa na wysokość przyszłej emerytury. W zaawansowanej symulacji możesz wprowadzić dokładne dni zwolnień 
                                     w danych historycznych i przyszłościowych dla bardziej precyzyjnej prognozy.
                                 </p>
@@ -1618,7 +1605,7 @@ onMounted(() => {
                                     <p class="text-sm text-gray-600 font-medium">Wzrost % całkowity</p>
                                 </div>
                                 <p class="text-3xl font-bold text-[rgb(255,179,79)]">
-                                    {{ ((simulationResult.account_growth_forecast[simulationResult.account_growth_forecast.length - 1].total_balance / simulationResult.account_growth_forecast[0].total_balance - 1) * 100).toFixed(1) }}%
+                                    {{ simulationResult.account_growth_forecast && simulationResult.account_growth_forecast.length > 0 ? (((simulationResult.account_growth_forecast[simulationResult.account_growth_forecast.length - 1].total_balance / simulationResult.account_growth_forecast[0].total_balance - 1) * 100).toFixed(1)) : '0.0' }}%
                                 </p>
                             </div>
                         </div>

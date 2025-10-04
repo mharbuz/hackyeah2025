@@ -16,6 +16,8 @@
             font-size: 10pt;
             line-height: 1.4;
             color: #333;
+            margin-top: 80px;
+            margin-bottom: 70px;
         }
 
         .header {
@@ -103,8 +105,8 @@
         }
 
         .comparison-box {
-            background: rgb(0, 153, 63);
-            color: white;
+            background: rgb(255, 179, 79);
+            color: rgb(0, 65, 110);
             padding: 10px;
             text-align: center;
             font-size: 11pt;
@@ -206,20 +208,91 @@
             color: #666;
             margin-top: 5px;
         }
+
+        /* Header styles */
+        .pdf-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            color: rgb(0, 153, 63);
+            padding: 15px 20px;
+            border-bottom: 3px solid rgb(0, 153, 63);
+            z-index: 1000;
+            height: 60px;
+        }
+
+        .pdf-header-content {
+            position: relative;
+            height: 100%;
+        }
+
+        .pdf-header-logo {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 30px;
+            width: auto;
+        }
+
+        .pdf-header-title {
+            position: absolute;
+            left: 180px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14pt;
+            font-weight: bold;
+            color: rgb(0, 153, 63);
+            margin: 0;
+        }
+
+        /* Footer styles */
+        .pdf-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            color: rgb(0, 153, 63);
+            padding: 10px 20px;
+            border-top: 3px solid rgb(0, 153, 63);
+            z-index: 1000;
+            height: 50px;
+        }
+
+        .pdf-footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 9pt;
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- Nagłówek -->
-    <div class="header">
-        <h1>📊 RAPORT PROGNOZY EMERYTALNEJ</h1>
-        <p>Szczegółowa analiza Twojej przyszłej emerytury</p>
-        <p style="font-size: 9pt; margin-top: 10px;">Wygenerowano: {{ $generation_date }}</p>
+    <!-- PDF Header -->
+    <div class="pdf-header">
+        <div class="pdf-header-content">
+            <img src="{{ public_path('zus-logo.svg') }}" alt="ZUS Logo" class="pdf-header-logo">
+            <h1 class="pdf-header-title">RAPORT PROGNOZY EMERYTALNEJ</h1>
+        </div>
     </div>
+
+    <!-- PDF Footer -->
+    <div class="pdf-footer">
+        <div class="pdf-footer-content">
+            <div>Wygenerowano: {{ $generation_date }}</div>
+        </div>
+    </div>
+
+    <!-- Main content starts here -->
 
     <!-- SEKCJA 1: PROFIL UŻYTKOWNIKA -->
     <div class="section">
-        <div class="section-title">👤 Twój profil emerytalny</div>
         <div class="card">
             <div class="card-title">Dane podstawowe</div>
             <div class="info-grid">
@@ -237,7 +310,7 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Rok przejścia na emeryturę:</div>
-                    <div class="info-value">{{ $profile['retirement_year'] }}</div>
+                    <div class="info-value">{{ $profile['retirement_year'] }} (w wieku: {{ $profile['retirement_year'] - (date('Y') - $profile['age']) }} lat)</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Aktualne wynagrodzenie brutto:</div>
@@ -245,7 +318,7 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Wskaźnik indeksacji wynagrodzeń:</div>
-                    <div class="info-value">{{ $profile['wage_indexation_rate'] }}%</div>
+                    <div class="info-value">{{ $profile['wage_indexation_rate'] ?? 5.0 }}%</div>
                 </div>
                 @if(isset($profile['account_balance']) && $profile['account_balance'] > 0)
                 <div class="info-row">
@@ -265,19 +338,15 @@
 
     <!-- SEKCJA 2: GŁÓWNE WYNIKI -->
     <div class="section">
-        <div class="section-title">💰 Wyniki prognozy emerytalnej</div>
         
         <div class="highlight-box">
             Twoja prognozowana emerytura: 
             {{ number_format($simulation_results['monthly_pension'], 2, ',', ' ') }} zł brutto
+            <small>
+            Emerytura urealniona (siła nabywcza): 
+            {{ number_format($simulation_results['economic_context']['purchasing_power_today'], 2, ',', ' ') }} zł
+            </small>
         </div>
-
-        @if(isset($simulation_results['real_pension_value']))
-        <div class="comparison-box">
-            ✅ Emerytura urealniona (po inflacji): 
-            {{ number_format($simulation_results['real_pension_value'], 2, ',', ' ') }} zł
-        </div>
-        @endif
 
         <!-- Porównanie z/bez zwolnień lekarskich -->
         @if(isset($simulation_results['monthly_pension_without_sick_leave']) && isset($simulation_results['sick_leave_impact']))
@@ -299,13 +368,13 @@
                 <div class="info-row">
                     <div class="info-label">Redukcja przez zwolnienia:</div>
                     <div class="info-value" style="color: rgb(240, 94, 94);">
-                        <strong>-{{ number_format($simulation_results['sick_leave_impact']['pension_reduction'], 2, ',', ' ') }} zł 
-                        ({{ number_format($simulation_results['sick_leave_impact']['percentage_reduction'], 2) }}%)</strong>
+                        <strong>-{{ number_format($simulation_results['sick_leave_impact']['pension_reduction'] ?? 0, 2, ',', ' ') }} zł 
+                        ({{ number_format($simulation_results['sick_leave_impact']['percentage_reduction'] ?? 0, 2) }}%)</strong>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Szacowana łączna liczba dni zwolnień:</div>
-                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['average_days'] }} dni</div>
+                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['average_days'] ?? 0 }} dni</div>
                 </div>
             </div>
             
@@ -388,29 +457,29 @@
     <div class="page-break"></div>
 
     <!-- SEKCJA 3: WPŁYW ZWOLNIEŃ CHOROBOWYCH -->
-    @if(isset($simulation_results['sick_leave_impact']) && $simulation_results['sick_leave_impact']['total_sick_days'] > 0)
+    @if(isset($simulation_results['sick_leave_impact']) && isset($simulation_results['sick_leave_impact']['total_sick_days']) && $simulation_results['sick_leave_impact']['total_sick_days'] > 0)
     <div class="section">
         <div class="section-title">🏥 Wpływ zwolnień chorobowych na emeryturę</div>
         
         <div class="warning-box">
-            ⚠️ Łącznie {{ $simulation_results['sick_leave_impact']['total_sick_days'] }} dni zwolnienia
-            (średnio {{ $simulation_results['sick_leave_impact']['average_days_per_year'] }} dni rocznie)
+            ⚠️ Łącznie {{ $simulation_results['sick_leave_impact']['total_sick_days'] ?? 0 }} dni zwolnienia
+            (średnio {{ $simulation_results['sick_leave_impact']['average_days_per_year'] ?? 0 }} dni rocznie)
         </div>
 
         <div class="card">
             <div class="info-grid">
                 <div class="info-row">
                     <div class="info-label">Zwolnienia historyczne:</div>
-                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['total_historical_sick_days'] }} dni</div>
+                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['total_historical_sick_days'] ?? 0 }} dni</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Prognozowane zwolnienia przyszłe:</div>
-                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['total_future_sick_days'] }} dni</div>
+                    <div class="info-value">{{ $simulation_results['sick_leave_impact']['total_future_sick_days'] ?? 0 }} dni</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Szacowana redukcja emerytury:</div>
                     <div class="info-value" style="color: rgb(240, 94, 94);">
-                        -{{ $simulation_results['sick_leave_impact']['estimated_pension_reduction_percent'] }}%
+                        -{{ $simulation_results['sick_leave_impact']['estimated_pension_reduction_percent'] ?? 0 }}%
                     </div>
                 </div>
             </div>
@@ -426,7 +495,6 @@
     <!-- SEKCJA 4: ODROCZENIE EMERYTURY -->
     @if(isset($simulation_results['delayed_retirement_options']) && count($simulation_results['delayed_retirement_options']) > 0)
     <div class="section">
-        <div class="section-title">⏰ Co jeśli przepracujesz dłużej?</div>
         
         <div class="card">
             <div class="card-title">Scenariusze odroczenia emerytury</div>
@@ -443,10 +511,10 @@
                 <tbody>
                     @foreach($simulation_results['delayed_retirement_options'] as $option)
                     <tr>
-                        <td><strong>+{{ $option['additional_years'] }} {{ $option['additional_years'] == 1 ? 'rok' : ($option['additional_years'] < 5 ? 'lata' : 'lat') }}</strong></td>
-                        <td>{{ $option['retirement_age'] }} lat</td>
-                        <td>{{ number_format($option['total_capital'], 0, ',', ' ') }} zł</td>
-                        <td><strong>{{ number_format($option['monthly_pension'], 2, ',', ' ') }} zł</strong></td>
+                        <td><strong>+{{ $option['additional_years'] ?? $option['delay_years'] ?? 0 }} {{ ($option['additional_years'] ?? $option['delay_years'] ?? 0) == 1 ? 'rok' : (($option['additional_years'] ?? $option['delay_years'] ?? 0) < 5 ? 'lata' : 'lat') }}</strong></td>
+                        <td>{{ $option['retirement_age'] ?? ($option['retirement_year'] ?? 'N/A') }} lat</td>
+                        <td>{{ number_format($option['total_capital'] ?? 0, 0, ',', ' ') }} zł</td>
+                        <td><strong>{{ number_format($option['monthly_pension'] ?? 0, 2, ',', ' ') }} zł</strong></td>
                         <td style="color: rgb(0, 153, 63);">
                             <strong>+{{ number_format($option['monthly_pension'] - $simulation_results['monthly_pension'], 2, ',', ' ') }} zł</strong>
                         </td>
@@ -460,45 +528,18 @@
             <strong>💡 Rekomendacja:</strong> 
             @php
                 $bestOption = collect($simulation_results['delayed_retirement_options'])->sortByDesc('monthly_pension')->first();
-                $increase = $bestOption['monthly_pension'] - $simulation_results['monthly_pension'];
+                $increase = ($bestOption['monthly_pension'] ?? 0) - ($simulation_results['monthly_pension'] ?? 0);
             @endphp
             Jeśli chcesz zwiększyć emeryturę o około {{ number_format($increase, 0, ',', ' ') }} zł miesięcznie, 
-            rozważ przepracowanie o {{ $bestOption['additional_years'] }} {{ $bestOption['additional_years'] == 1 ? 'rok' : ($bestOption['additional_years'] < 5 ? 'lata' : 'lat') }} dłużej.
+            rozważ przepracowanie o {{ $bestOption['additional_years'] ?? $bestOption['delay_years'] ?? 0 }} {{ ($bestOption['additional_years'] ?? $bestOption['delay_years'] ?? 0) == 1 ? 'rok' : (($bestOption['additional_years'] ?? $bestOption['delay_years'] ?? 0) < 5 ? 'lata' : 'lat') }} dłużej.
         </div>
     </div>
     @endif
 
-    <div class="page-break"></div>
-
     <!-- SEKCJA 5: WZROST KAPITAŁU W CZASIE -->
     @if(isset($simulation_results['account_growth_forecast']) && count($simulation_results['account_growth_forecast']) > 0)
     <div class="section">
-        <div class="section-title">📊 Wzrost kapitału emerytalnego rok po roku</div>
         
-        @php
-            $growthData = $simulation_results['account_growth_forecast'];
-            $maxBalance = max(array_column($growthData, 'total_balance'));
-            $totalContributions = array_sum(array_column($growthData, 'annual_contribution'));
-            $finalBalance = end($growthData)['total_balance'];
-            $initialBalance = $growthData[0]['total_balance'];
-            $totalGrowth = $finalBalance - $initialBalance;
-            $growthPercent = $initialBalance > 0 ? (($finalBalance / $initialBalance - 1) * 100) : 0;
-        @endphp
-
-        <div class="stat-grid">
-            <div class="stat-item">
-                <div class="stat-value">{{ number_format($totalGrowth / count($growthData), 0, ',', ' ') }} zł</div>
-                <div class="stat-label">Średni wzrost roczny</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">{{ number_format($totalContributions, 0, ',', ' ') }} zł</div>
-                <div class="stat-label">Łączne składki</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">{{ number_format($growthPercent, 1) }}%</div>
-                <div class="stat-label">Wzrost całkowity</div>
-            </div>
-        </div>
 
         <div class="card">
             <div class="card-title">Szczegółowa tabela wzrostu (wybrane lata)</div>
@@ -514,8 +555,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($growthData as $index => $item)
-                        @if($index % max(1, floor(count($growthData) / 20)) == 0 || $index == count($growthData) - 1)
+                    @foreach($simulation_results['account_growth_forecast'] as $index => $item)
+                        @if($index % max(1, floor(count($simulation_results['account_growth_forecast']) / 20)) == 0 || $index == count($simulation_results['account_growth_forecast']) - 1)
                         <tr>
                             <td><strong>{{ $item['year'] }}</strong></td>
                             <td>{{ $item['age'] }} lat</td>
@@ -530,7 +571,7 @@
                 <tfoot style="background-color: rgb(0, 153, 63); color: white;">
                     <tr>
                         <td colspan="5" style="text-align: right; padding: 10px;"><strong>KAPITAŁ KOŃCOWY:</strong></td>
-                        <td style="padding: 10px;"><strong style="font-size: 12pt;">{{ number_format($finalBalance, 0, ',', ' ') }} zł</strong></td>
+                        <td style="padding: 10px;"><strong style="font-size: 12pt;">{{ number_format(end($simulation_results['account_growth_forecast'])['total_balance'], 0, ',', ' ') }} zł</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -541,73 +582,77 @@
     <!-- SEKCJA 6: DANE HISTORYCZNE -->
     @if(count($historical_data) > 0)
     <div class="section">
-        <div class="section-title">📜 Historia zatrudnienia (dane wprowadzone)</div>
-        <table style="font-size: 8pt;">
-            <thead>
-                <tr>
-                    <th>Rok</th>
-                    <th>Wynagrodzenie brutto (miesięcznie)</th>
-                    <th>Zwolnienia chorobowe (dni)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(array_slice($historical_data, 0, 30) as $item)
-                <tr>
-                    <td>{{ $item['year'] }}</td>
-                    <td>{{ number_format($item['gross_salary'], 2, ',', ' ') }} zł</td>
-                    <td>{{ $item['sick_leave_days'] ?? 0 }} dni</td>
-                </tr>
-                @endforeach
-                @if(count($historical_data) > 30)
-                <tr>
-                    <td colspan="3" style="text-align: center; font-style: italic; color: #999;">
-                        ... oraz {{ count($historical_data) - 30 }} więcej lat
-                    </td>
-                </tr>
-                @endif
-            </tbody>
-        </table>
+        <div class="card">
+            <div class="card-title">📜 Historia zatrudnienia (dane wprowadzone)</div>
+            <table style="font-size: 8pt;">
+                <thead>
+                    <tr>
+                        <th>Rok</th>
+                        <th>Wynagrodzenie brutto (miesięcznie)</th>
+                        <th>Zwolnienia chorobowe (dni)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(array_slice($historical_data, 0, 30) as $item)
+                    <tr>
+                        <td>{{ $item['year'] }}</td>
+                        <td>{{ number_format($item['gross_salary'], 2, ',', ' ') }} zł</td>
+                        <td>{{ $item['sick_leave_days'] ?? 0 }} dni</td>
+                    </tr>
+                    @endforeach
+                    @if(count($historical_data) > 30)
+                    <tr>
+                        <td colspan="3" style="text-align: center; font-style: italic; color: #999;">
+                            ... oraz {{ count($historical_data) - 30 }} więcej lat
+                        </td>
+                    </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
     </div>
     @endif
 
     <!-- SEKCJA 7: DANE PRZYSZŁOŚCIOWE -->
     @if(count($future_data) > 0)
     <div class="section">
-        <div class="section-title">🔮 Prognoza przyszłych wynagrodzeń (dane wprowadzone)</div>
-        <table style="font-size: 8pt;">
-            <thead>
-                <tr>
-                    <th>Rok</th>
-                    <th>Prognozowane wynagrodzenie brutto</th>
-                    <th>Prognozowane zwolnienia (dni)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(array_slice($future_data, 0, 30) as $item)
-                <tr>
-                    <td>{{ $item['year'] }}</td>
-                    <td>{{ number_format($item['gross_salary'], 2, ',', ' ') }} zł</td>
-                    <td>{{ $item['sick_leave_days'] ?? 0 }} dni</td>
-                </tr>
-                @endforeach
-                @if(count($future_data) > 30)
-                <tr>
-                    <td colspan="3" style="text-align: center; font-style: italic; color: #999;">
-                        ... oraz {{ count($future_data) - 30 }} więcej lat
-                    </td>
-                </tr>
-                @endif
-            </tbody>
-        </table>
+        <div class="card">
+            <div class="card-title">Prognoza przyszłych wynagrodzeń (dane wprowadzone)</div>
+            <table style="font-size: 8pt;">
+                <thead>
+                    <tr>
+                        <th>Rok</th>
+                        <th>Prognozowane wynagrodzenie brutto</th>
+                        <th>Prognozowane zwolnienia (dni)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(array_slice($future_data, 0, 30) as $item)
+                    <tr>
+                        <td>{{ $item['year'] }}</td>
+                        <td>{{ number_format($item['gross_salary'], 2, ',', ' ') }} zł</td>
+                        <td>{{ $item['sick_leave_days'] ?? 0 }} dni</td>
+                    </tr>
+                    @endforeach
+                    @if(count($future_data) > 30)
+                    <tr>
+                        <td colspan="3" style="text-align: center; font-style: italic; color: #999;">
+                            ... oraz {{ count($future_data) - 30 }} więcej lat
+                        </td>
+                    </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
     </div>
     @endif
 
     <!-- PODSUMOWANIE KOŃCOWE -->
     <div class="section">
-        <div class="section-title">✨ Podsumowanie i zalecenia</div>
+        <div class="section-title">Podsumowanie i zalecenia</div>
         
         <div class="educational-box">
-            <strong>📌 Najważniejsze informacje:</strong><br><br>
+            <strong>Najważniejsze informacje:</strong><br><br>
             
             <strong>1. Twoja emerytura:</strong> {{ number_format($simulation_results['monthly_pension'], 2, ',', ' ') }} zł brutto miesięcznie<br>
             
@@ -627,27 +672,27 @@
             @endif
             
             @if(isset($simulation_results['sick_leave_impact']) && isset($simulation_results['sick_leave_impact']['total_sick_days']) && $simulation_results['sick_leave_impact']['total_sick_days'] > 0)
-            <strong>4. Wpływ zwolnień:</strong> Zwolnienia chorobowe obniżają Twoją emeryturę o około {{ $simulation_results['sick_leave_impact']['estimated_pension_reduction_percent'] }}%.<br>
+            <strong>4. Wpływ zwolnień:</strong> Zwolnienia chorobowe obniżają Twoją emeryturę o około {{ $simulation_results['sick_leave_impact']['estimated_pension_reduction_percent'] ?? 0 }}%.<br>
             @endif
             
             @if(isset($simulation_results['delayed_retirement_options']) && count($simulation_results['delayed_retirement_options']) > 0)
             @php
-                $firstDelayed = $simulation_results['delayed_retirement_options'][0];
-                $increase = $firstDelayed['monthly_pension'] - $simulation_results['monthly_pension'];
+                $firstDelayed = $simulation_results['delayed_retirement_options'][0] ?? [];
+                $increase = ($firstDelayed['monthly_pension'] ?? 0) - ($simulation_results['monthly_pension'] ?? 0);
             @endphp
-            <strong>5. Korzyść z odroczenia:</strong> Przepracowanie o {{ $firstDelayed['additional_years'] }} {{ $firstDelayed['additional_years'] == 1 ? 'rok' : 'lata' }} zwiększy Twoją emeryturę o {{ number_format($increase, 2, ',', ' ') }} zł miesięcznie.<br>
+            <strong>5. Korzyść z odroczenia:</strong> Przepracowanie o {{ $firstDelayed['additional_years'] ?? $firstDelayed['delay_years'] ?? 0 }} {{ ($firstDelayed['additional_years'] ?? $firstDelayed['delay_years'] ?? 0) == 1 ? 'rok' : 'lata' }} zwiększy Twoją emeryturę o {{ number_format($increase, 2, ',', ' ') }} zł miesięcznie.<br>
             @endif
         </div>
 
         <div class="card" style="background: linear-gradient(135deg, rgb(255, 179, 79) 0%, rgb(255, 179, 79) 100%); border: none; color: rgb(0, 65, 110);">
             <div style="text-align: center; font-size: 11pt; font-weight: bold;">
-                🎯 Ten raport został wygenerowany na podstawie aktualnych przepisów i założeń ekonomicznych. 
+                Ten raport został wygenerowany na podstawie aktualnych przepisów i założeń ekonomicznych. 
                 Rzeczywista emerytura może się różnić w zależności od zmian w prawie i sytuacji gospodarczej.
             </div>
         </div>
     </div>
 
-    <!-- Stopka -->
+    <!-- Page numbering script -->
     <script type="text/php">
         if (isset($pdf)) {
             $text = "Strona {PAGE_NUM} z {PAGE_COUNT}";
@@ -655,13 +700,8 @@
             $font = $fontMetrics->getFont("DejaVu Sans");
             $width = $fontMetrics->get_text_width($text, $font, $size) / 2;
             $x = ($pdf->get_width() - $width) / 2;
-            $y = $pdf->get_height() - 30;
-            $pdf->page_text($x, $y, $text, $font, $size, array(0.5, 0.5, 0.5));
-            
-            $reportText = "Raport wygenerowany przez System Prognozowania Emerytur ZUS | {{ $generation_date }}";
-            $reportWidth = $fontMetrics->get_text_width($reportText, $font, $size) / 2;
-            $reportX = ($pdf->get_width() - $reportWidth) / 2;
-            $pdf->page_text($reportX, $y - 12, $reportText, $font, $size, array(0.6, 0.6, 0.6));
+            $y = $pdf->get_height() - 15;
+            $pdf->page_text($x, $y, $text, $font, $size, array(0.8, 0.8, 0.8));
         }
     </script>
 
