@@ -348,6 +348,32 @@ const generateAreaPath = (data: AccountGrowthData[], field: keyof AccountGrowthD
     return linePath + closePath;
 };
 
+// Generowanie URL do udostępnienia
+const getShareUrl = () => {
+    if (!props.sessionUuid) return '';
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/dashboard-prognozowania?session=${props.sessionUuid}`;
+};
+
+// Kopiowanie linku do schowka
+const copyShareLink = async () => {
+    try {
+        await navigator.clipboard.writeText(getShareUrl());
+        // Można dodać toast notification tutaj
+        alert('✅ Link został skopiowany do schowka!');
+    } catch (err) {
+        console.error('Błąd kopiowania do schowka:', err);
+        // Fallback dla starszych przeglądarek
+        const textArea = document.createElement('textarea');
+        textArea.value = getShareUrl();
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('✅ Link został skopiowany do schowka!');
+    }
+};
+
 // Generowanie raportu PDF
 const generatePDF = async () => {
     if (!simulationResult.value) return;
@@ -1608,6 +1634,67 @@ onMounted(() => {
                             <p class="text-center text-sm text-gray-600">
                                 Raport zostanie wygenerowany w formacie PDF i automatycznie pobrany na Twoje urządzenie
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Udostępnianie symulacji -->
+                <Card class="shadow-2xl border-4 border-[rgb(0,153,63)] bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white">
+                    <CardHeader class="bg-gradient-to-r from-[rgb(0,153,63)]/20 to-transparent border-b-2 border-[rgb(0,153,63)]">
+                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,153,63)]/80 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold">Udostępnij symulację</div>
+                                <div class="text-sm font-normal text-gray-600 mt-1">Wyślij link do swojej prognozy emerytalnej</div>
+                            </div>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-8">
+                        <div class="space-y-6">
+                            <!-- Link do udostępnienia -->
+                            <div v-if="sessionUuid" class="space-y-4">
+                                <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                        </svg>
+                                        <span class="font-semibold text-[rgb(0,65,110)]">Link do udostępnienia:</span>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <input 
+                                            :value="getShareUrl()" 
+                                            readonly 
+                                            class="flex-1 p-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:border-[rgb(0,153,63)] focus:outline-none"
+                                        />
+                                        <Button
+                                            @click="copyShareLink"
+                                            class="px-6 py-3 bg-[rgb(0,153,63)] hover:bg-[rgb(0,153,63)]/90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                                        >
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            Kopiuj
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <p class="text-center text-sm text-gray-600">
+                                    Link będzie działał przez 30 dni. Odbiorcy będą mogli zobaczyć Twoją prognozę emerytalną.
+                                </p>
+                            </div>
+
+                            <!-- Brak sesji -->
+                            <div v-else class="text-center py-8">
+                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                <p class="text-gray-600 mb-2">Aby udostępnić symulację, najpierw wykonaj prognozę</p>
+                                <p class="text-sm text-gray-500">Wypełnij formularz powyżej i kliknij "Zaprognozuj szczegółową emeryturę"</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
