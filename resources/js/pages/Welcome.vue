@@ -86,6 +86,21 @@ const isLoadingFact = ref(false);
 const sessionUuid = ref<string | null>(null);
 const shareUrl = ref<string | null>(null);
 const isCreatingSession = ref(false);
+const isMobileMenuOpen = ref(false);
+const validationError = ref<string | null>(null);
+
+const toggleMobileMenu = () => {
+    isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
+// Funkcja blokująca nieprawidłowe znaki w input number
+const handleKeyDown = (event: KeyboardEvent) => {
+    // Blokuj: e, E, +, -
+    const invalidChars = ['e', 'E', '+', '-'];
+    if (invalidChars.includes(event.key)) {
+        event.preventDefault();
+    }
+};
 
 // Sprawdź czy to udostępniona sesja
 const isSharedSession = computed(() => !!props.sharedSession);
@@ -96,7 +111,7 @@ onMounted(() => {
     console.log('isSharedSession:', isSharedSession.value);
     console.log('props.sharedSession:', props.sharedSession);
     console.log('props.sharedPensionData:', props.sharedPensionData);
-    
+
     if (isSharedSession.value && props.sharedSession && props.sharedPensionData) {
         console.log('Initializing shared session...');
         desiredPension.value = props.sharedSession.pension_value;
@@ -173,41 +188,69 @@ const fetchRandomFact = async () => {
     }
 };
 
-// Obsługa formularza
+// Obsługa formularza z walidacją
 const handleSubmit = async () => {
+    // Wyczyść poprzednie błędy
+    validationError.value = null;
+
     // Nie pozwalaj na tworzenie nowej sesji gdy oglądamy udostępnioną sesję
     if (isSharedSession.value) {
         console.warn('Nie można utworzyć nowej sesji podczas oglądania udostępnionej sesji');
         return;
     }
-    
-    const value = parseFloat(inputValue.value);
-    if (value && value > 0) {
-        isCreatingSession.value = true;
-        
-        try {
-            // Utwórz sesję w bazie danych
-            const response = await axios.post('/api/pension-simulation', {
-                pension_value: value
-            });
-            
-            if (response.data.success) {
-                sessionUuid.value = response.data.session_uuid;
-                shareUrl.value = response.data.share_url;
-                
-                // Zaktualizuj URL w przeglądarce
-                window.history.pushState({}, '', shareUrl.value);
-            }
-        } catch (error) {
-            console.error('Błąd podczas tworzenia sesji:', error);
-        } finally {
-            isCreatingSession.value = false;
+
+    // Walidacja - sprawdź czy pole nie jest puste
+    if (!inputValue.value || inputValue.value === '') {
+        validationError.value = 'Proszę wprowadzić kwotę emerytury';
+        return;
+    }
+
+    const value = parseFloat(String(inputValue.value));
+
+    // Walidacja - sprawdź czy wartość jest liczbą
+    if (isNaN(value)) {
+        validationError.value = 'Wprowadzona wartość musi być liczbą';
+        return;
+    }
+
+    // Walidacja - sprawdź minimalną wartość
+    if (value < 500) {
+        validationError.value = 'Kwota emerytury musi wynosić co najmniej 500 zł';
+        return;
+    }
+
+    // Walidacja - sprawdź maksymalną wartość (np. 50000 zł)
+    if (value > 27000) {
+        validationError.value = 'Roczna kwota składek na ubezpieczenie emerytalne nie może przekroczyć trzydziestokrotności prognozowanego przeciętnego wynagrodzenia miesięcznego.';
+        return;
+    }
+
+    isCreatingSession.value = true;
+
+    try {
+        // Utwórz sesję w bazie danych
+        const response = await axios.post('/api/pension-simulation', {
+            pension_value: value
+        });
+
+        if (response.data.success) {
+            sessionUuid.value = response.data.session_uuid;
+            shareUrl.value = response.data.share_url;
+
+            // Zaktualizuj URL w przeglądarce
+            window.history.pushState({}, '', shareUrl.value);
         }
-        
+
         desiredPension.value = value;
         showResults.value = true;
         // Pobierz nową ciekawostkę przy każdym sprawdzeniu
         await fetchRandomFact();
+    } catch (error) {
+        console.error('Błąd podczas tworzenia sesji:', error);
+        validationError.value = 'Wystąpił błąd podczas tworzenia sesji. Spróbuj ponownie.';
+        toast.error('Wystąpił błąd podczas tworzenia sesji. Spróbuj ponownie.');
+    } finally {
+        isCreatingSession.value = false;
     }
 };
 
@@ -226,11 +269,11 @@ const copyShareLink = async () => {
 // Funkcja do generowania URL symulacji z zachowaniem parametru sesji
 const getPensionSimulationUrl = () => {
     const currentSessionUuid = sessionUuid.value || (props.sharedSession?.uuid);
-    
+
     if (currentSessionUuid) {
         return `/symulacja-emerytury?session=${currentSessionUuid}`;
     }
-    
+
     return '/symulacja-emerytury';
 };
 </script>
@@ -240,64 +283,208 @@ const getPensionSimulationUrl = () => {
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
-    <div
-        class="min-h-screen bg-gradient-to-br from-[rgb(0,65,110)] via-[rgb(63,132,210)] to-[rgb(0,153,63)] p-4 lg:p-8"
-    >
-        <header
-            class="mb-8 w-full max-w-7xl mx-auto"
-        >
-            <nav class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="bg-white rounded-lg px-4 py-2">
-                        <img 
-                            src="/zus-logo.svg" 
-                            alt="ZUS Logo" 
-                            class="h-8 w-auto"
+    <div class="min-h-screen bg-white zus-page">
+        <!-- Top Header Bar -->
+        <header class="bg-white border-b">
+            <div class="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-8">
+                <!-- Desktop Header (lg and up) -->
+                <div class="hidden lg:flex items-center py-5 gap-2">
+                    <!-- Logo -->
+                    <div class="flex items-center shrink-0 mr-5">
+                        <img
+                            src="/logo_zus_darker_with_text.svg"
+                            alt="ZUS Logo"
+                            class="h-12 w-auto"
                         />
                     </div>
-                    <h1 class="text-white text-2xl font-semibold hidden lg:block">Symulator Emerytury</h1>
+
+                    <!-- Right Side Navigation -->
+                    <div class="flex items-center gap-2 flex-wrap justify-end">
+                        <!-- Kontakt -->
+                        <a href="#" class="text-sm font-medium text-gray-700 hover:text-gray-900 hidden xl:block">
+                            Kontakt
+                        </a>
+
+                        <!-- Separator -->
+                        <div class="h-4 w-px bg-gray-300"></div>
+
+                        <!-- Language Selector -->
+                        <div class="relative hidden xl:block">
+                            <button class="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <span>PL</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Separator -->
+                        <div class="h-4 w-px bg-gray-300"></div>
+
+                        <!-- Accessibility Icons -->
+                        <div class="flex items-center gap-3">
+                            <!-- Icon - Słuch -->
+                            <button
+                                class="p-2 rounded hover:opacity-90 transition-colors"
+                                style="background-color: rgb(0, 65, 110);"
+                                aria-label="Wersja dla osób niesłyszących"
+                            >
+                                <img src="/ikona_ucho.svg" alt="Ikona ucha" class="h-6 w-6" />
+                            </button>
+
+                            <!-- Separator -->
+                            <div class="h-4 w-px bg-gray-300"></div>
+
+                            <!-- Icon - Wózek -->
+                            <button
+                                class="p-2 rounded hover:opacity-90 transition-colors"
+                                style="background-color: rgb(0, 65, 110);"
+                                aria-label="Wersja dla osób niepełnosprawnych"
+                            >
+                                <img src="/ikona_wozek.svg" alt="Ikona wózka" class="h-6 w-6" />
+                            </button>
+
+                            <!-- Separator -->
+                            <div class="h-4 w-px bg-gray-300"></div>
+
+                            <!-- BIP Icon -->
+                            <button class="p-2 rounded hover:bg-gray-100 transition-colors" aria-label="BIP">
+                                <img src="/bip_simple.svg" alt="BIP" class="h-9 w-9" />
+                            </button>
+                        </div>
+
+                        <!-- Separator -->
+                        <div class="h-6 w-px bg-gray-300 mx-2"></div>
+
+                        <!-- Login Buttons -->
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="flex px-3 xl:px-4 py-1.5 xl:py-2 text-xs xl:text-sm font-semibold border-2 rounded hover:opacity-90 transition-colors items-center"
+                                style="color: rgb(0, 65, 110); border-color: rgb(0, 65, 110); white-space: nowrap;"
+                            >
+                                <span>Zarejestruj w PUE/eZUS</span>
+                                <svg class="w-3 h-3 xl:w-4 xl:h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            <button
+                                class="flex px-3 xl:px-4 py-1.5 xl:py-2 text-xs xl:text-sm font-semibold text-gray-900 rounded hover:opacity-90 transition-colors items-center border-2"
+                                style="background-color: rgb(250, 184, 86); border-color: rgb(0, 65, 110); white-space: nowrap;"
+                            >
+                                <span style="color: rgb(0, 65, 110);">Zaloguj do PUE/eZUS</span>
+                                <svg class="w-3 h-3 xl:w-4 xl:h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+
+
+                        <div class="flex items-center gap-4 ml-4">
+                            <!-- Search Icon -->
+                            <button
+                                class="p-2 rounded-full hover:opacity-90 transition-colors mb-2"
+                                style="background-color: rgb(17, 120, 59);"
+                                aria-label="Szukaj"
+                            >
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+
+                            <!-- EU Logo -->
+                            <div class=" 2xl:flex items-center">
+                                <img src="/eu_pl_chromatic.jpg" alt="Unia Europejska" class="h-12 w-auto" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-3">
-                    <Link
-                        v-if="$page.props.auth.user"
-                        :href="dashboard()"
-                        class="inline-block rounded-lg bg-white px-6 py-2.5 text-base font-medium text-[rgb(0,65,110)] hover:bg-[rgb(255,179,79)] hover:text-white transition-colors"
-                    >
-                        Panel
-                    </Link>
-                    <template v-else>
-                        <Link
-                            :href="login()"
-                            class="inline-block rounded-lg border-2 border-white px-6 py-2.5 text-base font-medium text-white hover:bg-white hover:text-[rgb(0,65,110)] transition-colors"
+
+                <!-- Mobile Header (below lg) -->
+                <div class="lg:hidden flex justify-between  py-3">
+                    <!-- First Row: Logo and Links -->
+                    <div class="flex items-center justify-between mb-2">
+                        <!-- Logo -->
+                        <div class="flex items-center shrink-0">
+                            <img
+                                src="/logo_zus_darker_with_text.svg"
+                                alt="ZUS Logo"
+                                class="h-10 sm:h-12 w-auto"
+                            />
+                        </div>
+
+                        <!-- Links -->
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <!-- Zarejestruj w PUE/eZUS -->
+                            <a
+                                href="#"
+                                class="hidden md:block text-sm font-medium hover:underline whitespace-nowrap"
+                                style="color: rgb(0, 153, 63);"
+                            >
+                                Zarejestruj w PUE/eZUS
+                            </a>
+
+                            <!-- Zaloguj do PUE/eZUS -->
+                            <a
+                                href="#"
+                                class="hidden md:block text-sm font-medium hover:underline whitespace-nowrap"
+                                style="color: rgb(0, 153, 63);"
+                            >
+                                Zaloguj do PUE/eZUS
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Second Row: Szukaj, UE, Menu -->
+                    <div class="flex items-center justify-end gap-4">
+                        <!-- Search Button - vertical layout -->
+                        <button
+                            class="flex flex-col items-center justify-center h-9 gap-1 px-2 py-1 rounded-full hover:opacity-90 transition-colors mb-2"
+                            style="background-color: rgb(17, 120, 59);"
+                            aria-label="Szukaj"
                         >
-                            Zaloguj się
-                        </Link>
-                        <Link
-                            :href="register()"
-                            class="inline-block rounded-lg bg-white px-6 py-2.5 text-base font-medium text-[rgb(0,65,110)] hover:bg-[rgb(255,179,79)] hover:text-white transition-colors"
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+
+                        <!-- EU Flag with text -->
+                        <div class="flex flex-col items-center justify-center">
+                            <img src="/eu_pl_chromatic.jpg" alt="Unia Europejska" class="h-10 w-auto mb-1" />
+                        </div>
+
+                        <!-- Menu Icon - vertical layout -->
+                        <button
+                            @click="toggleMobileMenu"
+                            class="flex flex-col justify-center items-center gap-0.5 px-2 py-1 rounded hover:opacity-80 transition-colors min-w-[60px]"
+                            aria-label="Menu"
                         >
-                            Zarejestruj się
-                        </Link>
-                    </template>
+                            <div class="flex flex-col gap-1 mb-1">
+                                <span class="block w-7 h-0.5" style="background-color: rgb(17, 120, 59);"></span>
+                                <span class="block w-7 h-0.5" style="background-color: rgb(17, 120, 59);"></span>
+                                <span class="block w-7 h-0.5" style="background-color: rgb(0, 153, 63);"></span>
+                            </div>
+                            <span class="text-xs font-semibold leading-none" style="color: rgb(17, 120, 59);">Menu</span>
+                        </button>
+                    </div>
                 </div>
-            </nav>
+            </div>
         </header>
 
         <main
-            class="w-full max-w-7xl mx-auto"
+            class="w-full max-w-7xl mx-auto p-4 lg:p-8"
         >
             <!-- Informacja o udostępnionej sesji -->
-            <div v-if="isSharedSession" class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 text-white">
+            <div v-if="isSharedSession" class="bg-gray-100 rounded-2xl p-6 mb-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-2xl font-bold mb-2">Udostępniona sesja symulacji</h2>
-                        <p class="text-white/80">
+                        <h2 class="text-2xl font-bold mb-2 text-[rgb(0,65,110)]">Udostępniona sesja symulacji</h2>
+                        <p class="text-gray-600">
                             Utworzona: {{ formatDate(sharedSession!.created_at) }}
                         </p>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm text-white/60">ID sesji:</p>
-                        <p class="font-mono text-sm">{{ sharedSession!.uuid }}</p>
+                        <p class="text-sm text-gray-500">ID sesji:</p>
+                        <p class="font-mono text-sm text-gray-700">{{ sharedSession!.uuid }}</p>
                     </div>
                 </div>
             </div>
@@ -305,35 +492,44 @@ const getPensionSimulationUrl = () => {
             <!-- Sekcja wprowadzania danych (tylko dla głównego symulatora) -->
             <div
                 v-if="!isSharedSession"
-                class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 mb-8"
+                class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12 mb-8"
             >
-                <div class="max-w-3xl mx-auto text-center">
-                    <h2 class="text-3xl lg:text-4xl font-bold text-[rgb(0,65,110)] mb-4">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Nagłówek sekcji -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl lg:text-4xl font-bold mb-4" style="color: rgb(0, 65, 110);">
                         Jaką emeryturę chciałbyś otrzymywać w przyszłości?
                     </h2>
-                    <p class="text-lg text-gray-600 mb-8">
+                        <p class="text-base lg:text-lg text-gray-700 max-w-2xl mx-auto">
                         Wprowadź kwotę, którą chciałbyś otrzymywać jako emeryturę. Pomożemy Ci zrozumieć, jak wypada ona na tle statystyk krajowych.
                     </p>
+                    </div>
 
-                    <form @submit.prevent="handleSubmit" class="flex flex-col lg:flex-row gap-4 items-center justify-center mb-6">
-                        <div class="relative flex-1 max-w-md">
-                            <input
-                                v-model="inputValue"
-                                type="number"
-                                step="100"
-                                min="500"
-                                placeholder="np. 3500"
-                                class="w-full text-2xl lg:text-3xl font-semibold px-6 py-4 border-3 border-[rgb(190,195,206)] rounded-xl focus:outline-none focus:border-[rgb(0,153,63)] transition-colors text-black"
-                                required
-                            />
-                            <span class="absolute right-6 top-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-semibold text-gray-400">zł</span>
-                        </div>
+                    <!-- Formularz z inputem i przyciskiem -->
+                    <form @submit.prevent="handleSubmit" class="mb-6">
+                        <div class="flex flex-col lg:flex-row gap-4 items-stretch justify-center max-w-3xl mx-auto">
+                            <div class="relative flex-1">
+                                <input
+                                    v-model="inputValue"
+                                    type="number"
+                                    placeholder="np. 3500"
+                                    :class="[
+                                        'w-full text-2xl lg:text-3xl font-semibold px-6 py-4 border-2 focus:outline-none transition-colors text-gray-900',
+                                        validationError ? 'border-red-500' : ''
+                                    ]"
+                                    :style="validationError ? '' : 'border-color: rgb(190, 195, 206);'"
+                                    @input="validationError = null"
+                                    @keydown="handleKeyDown"
+                                />
+                                <span class="absolute right-6 top-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-semibold text-gray-400">zł</span>
+                            </div>
                         <button
                             type="submit"
                             :disabled="isCreatingSession"
-                            class="px-8 py-4 bg-[rgb(0,153,63)] text-white text-xl font-semibold rounded-xl hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                class="px-8 py-4 text-lg lg:text-xl font-semibold text-white transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                style="background-color: rgb(0, 153, 63);"
                         >
-                            <span v-if="isCreatingSession" class="flex items-center">
+                                <span v-if="isCreatingSession" class="flex items-center justify-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -342,33 +538,21 @@ const getPensionSimulationUrl = () => {
                             </span>
                             <span v-else>Sprawdź</span>
                         </button>
+                        </div>
                     </form>
 
-                    <div class="flex items-center justify-center gap-2 text-gray-500 mb-6">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                        </svg>
-                        <span>Średnia emerytura w Polsce: <strong class="text-[rgb(0,153,63)]">{{ formatCurrency(averagePension) }}</strong></span>
+                    <!-- Komunikat błędu walidacji -->
+                    <div v-if="validationError" class="max-w-3xl mx-auto mb-8">
+                        <div class="flex items-center gap-2 p-4 border-2 border-red-500 bg-red-50 text-red-700">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="font-medium">{{ validationError }}</span>
+                        </div>
                     </div>
 
-                    <!-- Przycisk do symulacji przyszłej emerytury -->
-                    <div class="border-t-2 border-gray-100 pt-6">
-                        <Link
-                            :href="getPensionSimulationUrl()"
-                            class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 px-8 py-4 text-xl font-bold text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-                        >
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                            <span>Symulacja przyszłej emerytury</span>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </Link>
-                        <p class="text-sm text-gray-500 mt-3">
-                            Oblicz szacunkową wysokość swojej przyszłej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych
-                        </p>
-                    </div>
+
+
                 </div>
             </div>
 
@@ -518,9 +702,9 @@ const getPensionSimulationUrl = () => {
                     <div class="bg-white/20 rounded-xl p-4 mb-6">
                         <p class="text-sm opacity-80 mb-2">Link do udostępnienia:</p>
                         <div class="flex items-center justify-center gap-2">
-                            <input 
-                                :value="shareUrl" 
-                                readonly 
+                            <input
+                                :value="shareUrl"
+                                readonly
                                 class="flex-1 bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
                             />
                             <button
@@ -545,14 +729,14 @@ const getPensionSimulationUrl = () => {
                     <h3 v-else class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
                         Chcesz sprawdzić swoją emeryturę?
                     </h3>
-                    
+
                     <p v-if="!isSharedSession" class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
                         Zarejestruj się w naszym systemie, aby uzyskać spersonalizowane wskazówki dotyczące oszczędzania i planowania emerytury.
                     </p>
                     <p v-else class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
                         Użyj naszego symulatora, aby sprawdzić, jaką emeryturę możesz otrzymać w przyszłości.
                     </p>
-                    
+
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             :href="getPensionSimulationUrl()"
@@ -573,15 +757,148 @@ const getPensionSimulationUrl = () => {
             </div>
         </main>
 
-        <footer class="mt-12 pb-8 text-center text-white">
-            <p class="text-sm opacity-80">
+        <footer class="mt-12 pb-8 text-center text-gray-600">
+            <p class="text-sm">
                 © 2025 Zakład Ubezpieczeń Społecznych - Symulator służy wyłącznie celom informacyjnym
             </p>
         </footer>
     </div>
 </template>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+</style>
+
 <style scoped>
+/* Czcionka Lato dla całej strony ZUS */
+.zus-page {
+  font-family: "Lato Regular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.zus-page * {
+  font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+button:focus,
+a:focus {
+  outline: 2px solid rgb(0, 153, 63);
+  outline-offset: 2px;
+}
+
+/* Menu hover effect */
+nav a:hover {
+  background-color: white;
+}
+
+/* Header responsywność */
+header {
+  position: relative;
+}
+
+header .flex.items-center.justify-between {
+  flex-wrap: nowrap;
+  gap: 1rem;
+}
+
+header .flex.items-center.flex-wrap {
+  justify-content: flex-end;
+}
+
+/* Logo responsywność */
+@media (max-width: 640px) {
+  header img[alt="ZUS Logo"] {
+    height: 3rem;
+  }
+}
+
+/* Menu główne - responsywność */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+nav .overflow-x-auto {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ukryj scrollbar ale pozwól na scroll */
+nav .flex {
+  scrollbar-width: none;
+}
+
+nav .flex::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bardzo małe ekrany mobilne */
+@media (max-width: 640px) {
+  .grid.grid-cols-1 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  main h1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  main h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Mobile menu - responsywność */
+@media (max-width: 768px) {
+  /* Zmniejsz odstępy na bardzo małych ekranach */
+  .lg\:hidden .flex.items-center.gap-4 {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Mniejsze gap na bardzo małych ekranach */
+  .lg\:hidden .flex.items-center.gap-4 {
+    gap: 0.5rem;
+  }
+
+  /* Zmniejsz rozmiar logo */
+  .lg\:hidden img[alt="ZUS Logo"] {
+    height: 2rem;
+  }
+
+  /* Zmniejsz rozmiar flag EU na bardzo małych ekranach */
+  .lg\:hidden img[alt="Unia Europejska"] {
+    height: 2rem;
+  }
+}
+
+/* Bottom tabs responsywność */
+@media (max-width: 768px) {
+  .flex.flex-wrap.-mt-1 a {
+    flex-basis: calc(50% - 0.5rem);
+    font-size: 0.875rem;
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .flex.flex-wrap.-mt-1 a {
+    flex-basis: 100%;
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -610,11 +927,29 @@ const getPensionSimulationUrl = () => {
 
 /* Wysoki kontrast dla WCAG 2.0 */
 input:focus {
-    box-shadow: 0 0 0 3px rgba(0, 153, 63, 0.3);
+    border-color: rgb(0, 153, 63) !important;
+    box-shadow: 0 0 0 3px rgba(0, 153, 63, 0.2);
 }
 
 button:focus {
-    outline: 3px solid rgba(255, 255, 255, 0.8);
+    outline: 2px solid rgb(0, 153, 63);
     outline-offset: 2px;
+}
+
+/* Hover dla przycisków */
+button[type="submit"]:not(:disabled):hover {
+    opacity: 0.9;
+}
+
+/* Ukryj strzałki w input type="number" */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 </style>

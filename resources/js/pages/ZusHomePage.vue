@@ -191,13 +191,13 @@
 
 
 
-
+    <!--  Content -->
     <main>
-
-
-
      
     </main>
+    <!--  Content -->
+
+    
   </div>
 </template>
 
