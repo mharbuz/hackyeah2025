@@ -474,17 +474,26 @@ const getPensionSimulationUrl = () => {
             class="w-full max-w-7xl mx-auto p-4 lg:p-8"
         >
             <!-- Informacja o udostępnionej sesji -->
-            <div v-if="isSharedSession" class="bg-gray-100 rounded-2xl p-6 mb-8">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-bold mb-2 text-[rgb(0,65,110)]">Udostępniona sesja symulacji</h2>
-                        <p class="text-gray-600">
-                            Utworzona: {{ formatDate(sharedSession!.created_at) }}
-                        </p>
+            <div v-if="isSharedSession" class="border-2 p-6 mb-8" style="border-color: rgb(63, 132, 210); background-color: rgb(63, 132, 210, 0.05);">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 flex items-center justify-center" style="background-color: rgb(63, 132, 210);">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-xl lg:text-2xl font-bold mb-2" style="color: rgb(0, 65, 110);">Udostępniona sesja symulacji</h2>
+                            <p class="text-sm lg:text-base text-gray-600">
+                                Utworzona: {{ formatDate(sharedSession!.created_at) }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm text-gray-500">ID sesji:</p>
-                        <p class="font-mono text-sm text-gray-700">{{ sharedSession!.uuid }}</p>
+                    <div class="text-left md:text-right">
+                        <p class="text-xs lg:text-sm font-semibold text-gray-500 uppercase tracking-wide">ID sesji:</p>
+                        <p class="font-mono text-sm text-gray-700 mt-1">{{ sharedSession!.uuid }}</p>
                     </div>
                 </div>
             </div>
@@ -559,46 +568,55 @@ const getPensionSimulationUrl = () => {
             <!-- Wyniki -->
             <div
                 v-if="showResults && desiredPension"
-                class="space-y-8"
+                class="space-y-6"
             >
                 <!-- Porównanie z średnią -->
-                <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
-                    <h3 class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-6 text-center">
+                <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
+                    <h3 class="text-2xl lg:text-3xl font-bold mb-8 text-center" style="color: rgb(0, 65, 110);">
                         Twoja emerytura w porównaniu do średniej
                     </h3>
 
-                    <div class="grid lg:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,153,63)] rounded-xl p-6 text-white text-center">
-                            <div class="text-sm font-medium mb-2 opacity-90">Twoja docelowa emerytura</div>
-                            <div class="text-4xl font-bold mb-1">{{ formatCurrency(desiredPension) }}</div>
+                    <div class="grid lg:grid-cols-3 gap-4 mb-8">
+                        <div class="border-2 p-6 text-center" style="border-color: rgb(63, 132, 210); background-color: rgb(63, 132, 210, 0.05);">
+                            <div class="text-sm font-semibold mb-3 uppercase tracking-wide" style="color: rgb(63, 132, 210);">Twoja docelowa emerytura</div>
+                            <div class="text-3xl lg:text-4xl font-bold" style="color: rgb(0, 65, 110);">{{ formatCurrency(desiredPension) }}</div>
                         </div>
 
-                        <div class="bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-xl p-6 text-white text-center">
-                            <div class="text-sm font-medium mb-2 opacity-90">Średnia krajowa</div>
-                            <div class="text-4xl font-bold mb-1">{{ formatCurrency(averagePension) }}</div>
+                        <div class="border-2 p-6 text-center" style="border-color: rgb(0, 153, 63); background-color: rgb(0, 153, 63, 0.05);">
+                            <div class="text-sm font-semibold mb-3 uppercase tracking-wide" style="color: rgb(0, 153, 63);">Średnia krajowa</div>
+                            <div class="text-3xl lg:text-4xl font-bold" style="color: rgb(0, 65, 110);">{{ formatCurrency(averagePension) }}</div>
                         </div>
 
-                        <div :class="[
-                            'rounded-xl p-6 text-white text-center',
-                            parseFloat(percentageDifference) >= 0
-                                ? 'bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(255,179,79)]'
-                                : 'bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(190,195,206)]'
-                        ]">
-                            <div class="text-sm font-medium mb-2 opacity-90">Różnica</div>
-                            <div class="text-4xl font-bold mb-1">
+                        <div
+                            class="border-2 p-6 text-center"
+                            :style="{
+                                borderColor: parseFloat(percentageDifference) >= 0 ? 'rgb(0, 153, 63)' : 'rgb(240, 94, 94)',
+                                backgroundColor: parseFloat(percentageDifference) >= 0 ? 'rgb(0, 153, 63, 0.05)' : 'rgb(240, 94, 94, 0.05)'
+                            }"
+                        >
+                            <div class="text-sm font-semibold mb-3 uppercase tracking-wide" :style="{ color: parseFloat(percentageDifference) >= 0 ? 'rgb(0, 153, 63)' : 'rgb(240, 94, 94)' }">
+                                Różnica
+                            </div>
+                            <div class="text-3xl lg:text-4xl font-bold mb-1" style="color: rgb(0, 65, 110);">
                                 {{ parseFloat(percentageDifference) >= 0 ? '+' : '' }}{{ percentageDifference }}%
                             </div>
-                            <div class="text-sm opacity-90">
+                            <div class="text-sm font-medium" :style="{ color: parseFloat(percentageDifference) >= 0 ? 'rgb(0, 153, 63)' : 'rgb(240, 94, 94)' }">
                                 {{ parseFloat(percentageDifference) >= 0 ? 'powyżej' : 'poniżej' }} średniej
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="userGroup" class="bg-gradient-to-r from-[rgb(190,195,206)]/20 to-transparent rounded-xl p-6 border-l-4" :style="{ borderColor: userGroup.color }">
+                    <div v-if="userGroup" class="border-l-4 p-6" style="background-color: rgb(190, 195, 206, 0.1);" :style="{ borderLeftColor: userGroup.color }">
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-3 h-3 rounded-full mt-1.5" :style="{ backgroundColor: userGroup.color }"></div>
-                            <div>
-                                <h4 class="text-xl font-bold text-[rgb(0,65,110)] mb-2">Należysz do grupy: {{ userGroup.name }}</h4>
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 flex items-center justify-center" :style="{ backgroundColor: userGroup.color }">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold mb-3" style="color: rgb(0, 65, 110);">Należysz do grupy: {{ userGroup.name }}</h4>
                                 <p class="text-gray-700 text-base leading-relaxed">{{ userGroup.description }}</p>
                             </div>
                         </div>
@@ -606,41 +624,59 @@ const getPensionSimulationUrl = () => {
                 </div>
 
                 <!-- Wykres grup emerytalnych -->
-                <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
-                    <h3 class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-3 text-center">
+                <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12">
+                    <h3 class="text-2xl lg:text-3xl font-bold mb-3 text-center" style="color: rgb(0, 65, 110);">
                         Rozkład emerytur w Polsce
                     </h3>
-                    <p class="text-center text-gray-600 mb-8 text-lg">
-                        Najedź na grupę, aby zobaczyć szczegóły
+                    <p class="text-center text-gray-600 mb-8 text-base">
+                        Twój przedział jest podświetlony kolorem
                     </p>
 
-                    <div class="space-y-4 mb-8">
+                    <div class="space-y-3 mb-8">
                         <div
                             v-for="(group, index) in currentPensionGroups"
                             :key="index"
-                            @mouseenter="hoveredGroup = index"
-                            @mouseleave="hoveredGroup = null"
-                            class="relative cursor-pointer transition-all duration-300 transform hover:scale-105"
+                            class="relative transition-all duration-200 border-2 p-4"
+                            :style="{
+                                borderColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(209, 213, 219)',
+                                backgroundColor: userGroup && userGroup.name === group.name ? `${group.color}20` : 'rgb(249, 250, 251)'
+                            }"
                         >
                             <div class="flex items-center gap-4 mb-2">
                                 <div class="flex-1">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="font-bold text-lg text-[rgb(0,65,110)]">{{ group.name }}</span>
+                                    <div class="flex justify-between items-center mb-3">
                                         <div class="flex items-center gap-3">
-                                            <span class="text-base font-semibold text-gray-700">{{ group.percentage }}%</span>
-                                            <span class="text-base font-bold" :style="{ color: group.color }">{{ formatCurrency(group.amount) }}</span>
+                                            <div
+                                                class="w-6 h-6 flex-shrink-0"
+                                                :style="{
+                                                    backgroundColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
+                                                }"
+                                            ></div>
+                                            <span class="font-bold text-lg" :style="{ color: userGroup && userGroup.name === group.name ? 'rgb(0, 65, 110)' : 'rgb(75, 85, 99)' }">
+                                                {{ group.name }}
+                                                <span v-if="userGroup && userGroup.name === group.name" class="ml-2 text-base font-bold" :style="{ color: group.color }">
+                                                    ← Twój przedział
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-base font-semibold" :style="{ color: userGroup && userGroup.name === group.name ? 'rgb(55, 65, 81)' : 'rgb(107, 114, 128)' }">
+                                                {{ group.percentage }}%
+                                            </span>
+                                            <span class="text-base font-bold" :style="{ color: userGroup && userGroup.name === group.name ? group.color : 'rgb(107, 114, 128)' }">
+                                                {{ formatCurrency(group.amount) }}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="h-12 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                    <div class="h-10 overflow-hidden" :style="{ backgroundColor: userGroup && userGroup.name === group.name ? 'rgb(243, 244, 246)' : 'rgb(229, 231, 235)' }">
                                         <div
-                                            class="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-4"
+                                            class="h-full transition-all duration-500 flex items-center justify-end pr-4"
                                             :style="{
                                                 width: group.percentage + '%',
-                                                backgroundColor: group.color,
-                                                opacity: hoveredGroup === index ? 1 : 0.8
+                                                backgroundColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(156, 163, 175)'
                                             }"
                                         >
-                                            <span v-if="group.percentage > 15" class="text-white font-bold text-sm drop-shadow-lg">
+                                            <span v-if="group.percentage > 15" class="text-white font-bold text-sm">
                                                 {{ group.percentage }}%
                                             </span>
                                         </div>
@@ -648,110 +684,67 @@ const getPensionSimulationUrl = () => {
                                 </div>
                             </div>
 
-                            <!-- Tooltip z opisem -->
-                            <div
-                                v-if="hoveredGroup === index"
-                                class="mt-3 p-4 bg-gradient-to-r from-[rgb(190,195,206)]/10 to-transparent rounded-xl border-l-4 animate-fadeIn"
-                                :style="{ borderColor: group.color }"
-                            >
-                                <p class="text-gray-700 text-base leading-relaxed">{{ group.description }}</p>
+                            <!-- Opis grupy - zawsze widoczny -->
+                            <div class="mt-4 pt-4 border-t-2" :style="{ borderColor: userGroup && userGroup.name === group.name ? group.color : 'rgb(209, 213, 219)' }">
+                                <p class="text-base leading-relaxed" :style="{
+                                    color: userGroup && userGroup.name === group.name ? 'rgb(55, 65, 81)' : 'rgb(107, 114, 128)',
+                                    fontWeight: userGroup && userGroup.name === group.name ? '500' : '400'
+                                }">
+                                    {{ group.description }}
+                                </p>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Legenda -->
-                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 pt-6 border-t-2 border-gray-100">
-                        <div
-                            v-for="(group, index) in currentPensionGroups"
-                            :key="'legend-' + index"
-                            class="flex items-center gap-2"
-                        >
-                            <div class="w-4 h-4 rounded-full flex-shrink-0" :style="{ backgroundColor: group.color }"></div>
-                            <span class="text-sm text-gray-600">{{ group.name }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Ciekawostka -->
-                <div class="bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-2xl shadow-2xl p-8 lg:p-12 text-white">
-                    <div class="flex items-start gap-4">
+                <div class="border-2 p-8 lg:p-12" style="border-color: rgb(255, 179, 79); background-color: rgb(255, 179, 79, 0.05);">
+                    <div class="flex items-start gap-4 lg:gap-6">
                         <div class="flex-shrink-0">
-                            <svg v-if="!isLoadingFact" class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <svg v-else class="w-12 h-12 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
+                            <div class="w-12 h-12 lg:w-16 lg:h-16 flex items-center justify-center" style="background-color: rgb(255, 179, 79);">
+                                <svg v-if="!isLoadingFact" class="w-6 h-6 lg:w-8 lg:h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <svg v-else class="w-6 h-6 lg:w-8 lg:h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-2xl font-bold mb-3">Czy wiesz, że...</h3>
-                            <p class="text-lg leading-relaxed">{{ currentFunFact || 'Ładowanie ciekawostki...' }}</p>
+                            <h3 class="text-xl lg:text-2xl font-bold mb-3" style="color: rgb(0, 65, 110);">Czy wiesz, że...</h3>
+                            <p class="text-base lg:text-lg text-gray-700 leading-relaxed">{{ currentFunFact || 'Ładowanie ciekawostki...' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Udostępnianie sesji (tylko dla głównego symulatora) -->
-                <div v-if="shareUrl && !isSharedSession" class="bg-gradient-to-r from-[rgb(0,153,63)] to-[rgb(63,132,210)] rounded-2xl shadow-2xl p-8 lg:p-12 text-center text-white mb-8">
-                    <h3 class="text-2xl lg:text-3xl font-bold mb-4">
-                        🎉 Twoja sesja została utworzona!
-                    </h3>
-                    <p class="text-lg mb-6 opacity-90">
-                        Udostępnij wyniki swojej symulacji z innymi osobami
-                    </p>
-                    <div class="bg-white/20 rounded-xl p-4 mb-6">
-                        <p class="text-sm opacity-80 mb-2">Link do udostępnienia:</p>
-                        <div class="flex items-center justify-center gap-2">
-                            <input
-                                :value="shareUrl"
-                                readonly
-                                class="flex-1 bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                            />
-                            <button
-                                @click="copyShareLink"
-                                class="bg-white/20 hover:bg-white/30 border border-white/30 rounded-lg px-4 py-2 transition-colors"
-                                title="Kopiuj link"
-                            >
-                                📋
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-sm opacity-80">
-                        Link będzie aktywny przez 30 dni
-                    </p>
-                </div>
 
                 <!-- Podsumowanie i CTA -->
-                <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 text-center">
-                    <h3 v-if="!isSharedSession" class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
-                        Chcesz osiągnąć swoją docelową emeryturę?
+                <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12 text-center">
+                    <h3 v-if="!isSharedSession" class="text-2xl lg:text-3xl font-bold mb-4" style="color: rgb(0, 65, 110);">
+                        Chcesz dokładnie obliczyć swoją przyszłą emeryturę?
                     </h3>
-                    <h3 v-else class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-4">
+                    <h3 v-else class="text-2xl lg:text-3xl font-bold mb-4" style="color: rgb(0, 65, 110);">
                         Chcesz sprawdzić swoją emeryturę?
                     </h3>
 
-                    <p v-if="!isSharedSession" class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Zarejestruj się w naszym systemie, aby uzyskać spersonalizowane wskazówki dotyczące oszczędzania i planowania emerytury.
+                    <p v-if="!isSharedSession" class="text-base lg:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                        Skorzystaj z naszego szczegółowego kalkulatora, aby obliczyć szacunkową wysokość swojej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych.
                     </p>
-                    <p v-else class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Użyj naszego symulatora, aby sprawdzić, jaką emeryturę możesz otrzymać w przyszłości.
+                    <p v-else class="text-base lg:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                        Użyj naszego szczegółowego kalkulatora, aby obliczyć szacunkową wysokość swojej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych.
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             :href="getPensionSimulationUrl()"
-                            class="inline-block rounded-xl bg-[rgb(0,153,63)] px-8 py-4 text-xl font-semibold text-white hover:bg-[rgb(0,65,110)] transition-colors shadow-lg hover:shadow-xl"
+                            class="inline-block px-8 py-4 text-lg lg:text-xl font-semibold text-white transition-colors hover:opacity-90"
+                            style="background-color: rgb(0, 153, 63);"
                         >
-                            <span v-if="!isSharedSession">Zacznij planować swoją przyszłość</span>
-                            <span v-else>Sprawdź swoją emeryturę</span>
+                            <span v-if="!isSharedSession">Oblicz swoją emeryturę</span>
+                            <span v-else>Oblicz swoją emeryturę</span>
                         </Link>
-                        <button
-                            v-if="!isSharedSession"
-                            @click="showResults = false; desiredPension = null; inputValue = ''; sessionUuid = null; shareUrl = null"
-                            class="inline-block rounded-xl border-2 border-[rgb(0,65,110)] px-8 py-4 text-xl font-semibold text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white transition-colors"
-                        >
-                            Sprawdź inną kwotę
-                        </button>
+
                     </div>
                 </div>
             </div>
