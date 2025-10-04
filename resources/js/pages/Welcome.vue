@@ -163,15 +163,15 @@ const currentPensionGroups = computed(() => {
 // Funkcja obliczająca pozycję na wykresie (0-100%)
 const calculateChartPosition = (pensionAmount: number) => {
     const groups = currentPensionGroups.value;
-    
+
     // Znajdź indeks grupy, do której należy emerytura
     let groupIndex = groups.findIndex(group => pensionAmount <= group.amount);
     if (groupIndex === -1) groupIndex = groups.length - 1;
-    
+
     // Oblicz pozycję jako procent
     // Każda grupa zajmuje równą szerokość: 100% / liczba grup
     const groupWidth = 100 / groups.length;
-    
+
     // Pozycja to środek danej grupy
     return (groupIndex * groupWidth) + (groupWidth / 2);
 };
@@ -180,7 +180,7 @@ const calculateChartPosition = (pensionAmount: number) => {
 const maxPercentage = computed(() => {
     const groups = currentPensionGroups.value;
     if (groups.length === 0) return 10;
-    
+
     const max = Math.max(...groups.map(g => g.percentage));
     // Zaokrąglij w górę do najbliższej wartości 5, 10, 15, 20, 25, etc
     return Math.ceil(max / 5) * 5;
@@ -278,7 +278,7 @@ const handleSubmit = async () => {
         if (response.data.success) {
             sessionUuid.value = response.data.session_uuid;
             shareUrl.value = response.data.share_url;
-            
+
             // Zapisz dane o rozkładzie emerytur
             if (response.data.pension_data) {
                 dynamicPensionData.value = response.data.pension_data;
@@ -625,7 +625,7 @@ const getPensionSimulationUrl = () => {
                     <p class="text-center text-gray-600 mb-8 md:mb-12 text-xs md:text-sm lg:text-base">
                         Wysokość słupka pokazuje ile procent osób otrzymuje emeryturę w danym przedziale
                     </p>
-                    
+
                     <div class="max-w-6xl mx-auto overflow-x-auto">
                         <div class="flex gap-3 md:gap-6 min-w-[600px] md:min-w-0">
                             <!-- Oś Y (po lewej stronie) - dynamiczna skala -->
@@ -644,19 +644,19 @@ const getPensionSimulationUrl = () => {
                                     <div class="text-xs md:text-sm font-bold text-gray-400">{{ (maxPercentage * 0.25).toFixed(1) }}%</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Wykres słupkowy -->
                             <div class="flex-1 min-w-0">
                                 <!-- Przestrzeń na etykiety nad wykresem -->
                                 <div class="h-16 md:h-20 mb-2"></div>
-                                
+
                                 <div class="relative" style="height: 280px;">
                                     <!-- Linie poziome siatki -->
                                     <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 0%;"></div>
                                     <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 25%;"></div>
                                     <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 50%;"></div>
                                     <div class="absolute w-full border-t border-dashed border-gray-200" style="top: 75%;"></div>
-                                    
+
                                     <!-- Słupki -->
                                     <div class="absolute bottom-0 left-0 right-0 flex items-end gap-0.5" style="height: 100%;">
                                         <div
@@ -676,9 +676,9 @@ const getPensionSimulationUrl = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Znacznik średniej krajowej (z-index 5 - pod słupkami) -->
-                                    <div 
+                                    <div
                                         class="absolute bottom-0 transition-all duration-500 pointer-events-none"
                                         style="z-index: 5;"
                                         :style="{
@@ -688,17 +688,17 @@ const getPensionSimulationUrl = () => {
                                     >
                                         <!-- Linia pionowa przezroczysta -->
                                         <div class="w-1 mx-auto" style="background-color: rgba(0, 153, 63, 0.4); height: 280px;"></div>
-                                        
+
                                         <!-- Etykieta poniżej wykresu -->
-                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm" 
+                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm"
                                              style="background-color: rgb(0, 153, 63); top: 285px; left: 50%; transform: translateX(-50%);">
                                             <div class="text-xs mb-1">Średnia krajowa</div>
                                             <div class="text-sm md:text-base">{{ formatCurrency(averagePension) }}</div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Znacznik Twojej emerytury (z-index 5 - pod słupkami) -->
-                                    <div 
+                                    <div
                                         v-if="desiredPension"
                                         class="absolute bottom-0 transition-all duration-500 pointer-events-none"
                                         style="z-index: 5;"
@@ -709,19 +709,19 @@ const getPensionSimulationUrl = () => {
                                     >
                                         <!-- Linia pionowa przezroczysta -->
                                         <div class="w-1 mx-auto" style="background-color: rgba(0, 65, 110, 0.4); height: 296px;"></div>
-                                        
+
                                         <!-- Etykieta powyżej wykresu -->
-                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm" 
+                                        <div class="absolute px-2 md:px-3 py-1 md:py-2 font-bold text-white whitespace-nowrap shadow-lg text-xs md:text-sm"
                                              style="background-color: rgb(0, 65, 110); bottom: 300px; left: 50%; transform: translateX(-50%);">
                                             <div class="text-xs mb-1">Twoja emerytura</div>
                                             <div class="text-sm md:text-base">{{ formatCurrency(desiredPension) }}</div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Przestrzeń na etykietę pod wykresem -->
                                 <div class="h-16 md:h-20 mt-2"></div>
-                                
+
                                 <!-- Etykiety przedziałów pod słupkami -->
                                 <div class="flex items-start gap-0.5 mt-3 md:mt-4 pt-3 md:pt-4 border-t-2" style="border-color: rgb(209, 213, 219);">
                                     <div
@@ -737,9 +737,9 @@ const getPensionSimulationUrl = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Różnica między Twoją emeryturą a średnią -->
-                    <div class="max-w-6xl mx-auto mt-8 p-4 md:p-6 border-2" 
+                    <div class="max-w-6xl mx-auto mt-8 p-4 md:p-6 border-2"
                          style="border-color: rgb(63, 132, 210); background-color: rgba(63, 132, 210, 0.05);">
                         <div class="flex items-center justify-between flex-wrap gap-4">
                             <div>
@@ -908,32 +908,48 @@ const getPensionSimulationUrl = () => {
 
 
                 <!-- Podsumowanie i CTA -->
-                <div class="bg-white border border-gray-200 shadow-sm p-8 lg:p-12 text-center">
-                    <h3 v-if="!isSharedSession" class="text-2xl lg:text-3xl font-bold mb-4" style="color: rgb(0, 65, 110);">
-                        Chcesz dokładnie obliczyć swoją przyszłą emeryturę?
+                <div class="bg-gradient-to-br from-white to-blue-50 border-2 shadow-lg p-6 md:p-8 lg:p-12 text-center" style="border-color: rgb(0, 153, 63);">
+                    <!-- Ikona/Badge -->
+                    <div class="flex justify-center mb-6">
+                        <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-full shadow-lg" style="background-color: rgb(0, 153, 63);">
+                            <svg class="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h3 v-if="!isSharedSession" class="text-2xl md:text-3xl lg:text-4xl font-bold mb-4" style="color: rgb(0, 65, 110);">
+                        Oblicz precyzyjnie swoją przyszłą emeryturę!
                     </h3>
-                    <h3 v-else class="text-2xl lg:text-3xl font-bold mb-4" style="color: rgb(0, 65, 110);">
-                        Chcesz sprawdzić swoją emeryturę?
+                    <h3 v-else class="text-2xl md:text-3xl lg:text-4xl font-bold mb-4" style="color: rgb(0, 65, 110);">
+                        Sprawdź swoją emeryturę dokładnie!
                     </h3>
 
-                    <p v-if="!isSharedSession" class="text-base lg:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                        Skorzystaj z naszego szczegółowego kalkulatora, aby obliczyć szacunkową wysokość swojej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych.
+                    <p v-if="!isSharedSession" class="text-base lg:text-lg text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
+                        Nasz <strong>szczegółowy kalkulator</strong> uwzględni Twój wiek, wynagrodzenie, staż pracy i plany zawodowe, aby pokazać Ci <strong style="color: rgb(0, 153, 63);">realną prognozę</strong> Twojej przyszłej emerytury.
                     </p>
-                    <p v-else class="text-base lg:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                        Użyj naszego szczegółowego kalkulatora, aby obliczyć szacunkową wysokość swojej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych.
+                    <p v-else class="text-base lg:text-lg text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed">
+                        Użyj <strong>szczegółowego kalkulatora</strong>, aby obliczyć <strong style="color: rgb(0, 153, 63);">wysokość</strong> swojej emerytury na podstawie rzeczywistych danych i prognoz.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Link
                             :href="getPensionSimulationUrl()"
-                            class="inline-block px-8 py-4 text-lg lg:text-xl font-semibold text-white transition-colors hover:opacity-90"
+                            class="inline-flex items-center gap-3 px-10 py-5 text-lg lg:text-xl font-bold text-white transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
                             style="background-color: rgb(0, 153, 63);"
                         >
-                            <span v-if="!isSharedSession">Oblicz swoją emeryturę</span>
-                            <span v-else>Oblicz swoją emeryturę</span>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <span>Oblicz swoją emeryturę</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
                         </Link>
-
                     </div>
+
                 </div>
             </div>
         </main>
