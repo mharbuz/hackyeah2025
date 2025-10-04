@@ -993,8 +993,8 @@ const resetForm = () => {
                     </CardContent>
                 </Card>
 
-                <!-- Wpływ zwolnień lekarskich -->
-                <Card v-if="simulationResult.sick_leave_impact" class="shadow-xl border-2 border-[rgb(255,179,79)] bg-gradient-to-br from-white to-[rgb(255,179,79)]/5 backdrop-blur-sm">
+                <!-- Wpływ zwolnień lekarskich - ZAWSZE pokazuj -->
+                <Card class="shadow-xl border-2 border-[rgb(255,179,79)] bg-gradient-to-br from-white to-[rgb(255,179,79)]/5 backdrop-blur-sm">
                     <CardHeader class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent">
                         <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
                             <div class="w-10 h-10 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center">
@@ -1062,13 +1062,19 @@ const resetForm = () => {
                         <div class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(255,179,79)]">
                             <div class="flex items-start gap-3">
                                 <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                                 </svg>
                                 <p class="text-sm text-gray-700 leading-relaxed">
                                     <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
                                     (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce 
                                     przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni, 
                                     co realnie wpływa na wysokość przyszłej emerytury.
+                                    <template v-if="formData.include_sick_leave">
+                                        <br><br><strong>W Twojej symulacji uwzględniono zwolnienia lekarskie.</strong>
+                                    </template>
+                                    <template v-else>
+                                        <br><br><strong>W Twojej symulacji NIE uwzględniono zwolnień lekarskich</strong> - wyświetlana emerytura zakłada idealną frekwencję.
+                                    </template>
                                 </p>
                             </div>
                         </div>

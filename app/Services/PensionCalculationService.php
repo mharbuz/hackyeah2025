@@ -94,24 +94,23 @@ class PensionCalculationService
         // Łączny kapitał emerytalny
         $totalCapital = $finalAccountBalance + $finalSubaccountBalance;
 
-        // Oblicz miesięczną emeryturę
+        // Oblicz miesięczną emeryturę BEZ zwolnień (bazowa wartość)
         $lifeExpectancyMonths = $this->getLifeExpectancyMonths($gender);
-        $monthlyPension = $totalCapital / $lifeExpectancyMonths;
-        
-        // Zachowaj emeryturę bez wpływu zwolnień lekarskich
-        $monthlyPensionWithoutSickLeave = $monthlyPension;
+        $monthlyPensionWithoutSickLeave = $totalCapital / $lifeExpectancyMonths;
 
-        // Wpływ zwolnień lekarskich
-        $sickLeaveImpact = null;
-        if ($includeSickLeave) {
-            $sickLeaveImpact = $this->calculateSickLeaveImpact(
-                $gender,
-                $yearsToRetirement,
-                $age,
-                $monthlyPension
-            );
-            $monthlyPension -= $sickLeaveImpact['pension_reduction'];
-        }
+        // Zawsze oblicz wpływ zwolnień lekarskich
+        $sickLeaveImpact = $this->calculateSickLeaveImpact(
+            $gender,
+            $yearsToRetirement,
+            $age,
+            $monthlyPensionWithoutSickLeave
+        );
+        
+        // Emerytura Z uwzględnieniem zwolnień (zawsze obliczana)
+        $monthlyPensionWithSickLeave = $monthlyPensionWithoutSickLeave - $sickLeaveImpact['pension_reduction'];
+        
+        // Użyj odpowiedniej wartości w zależności od wyboru użytkownika
+        $monthlyPension = $includeSickLeave ? $monthlyPensionWithSickLeave : $monthlyPensionWithoutSickLeave;
 
         // Oblicz dodatkowe informacje ekonomiczne
         $economicContext = $this->calculateEconomicContext(

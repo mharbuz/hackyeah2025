@@ -1132,6 +1132,89 @@ const generatePDF = async () => {
                     </CardContent>
                 </Card>
 
+                <!-- Wpływ zwolnień lekarskich - ZAWSZE pokazuj -->
+                <Card class="shadow-xl border-2 border-[rgb(255,179,79)] bg-gradient-to-br from-white to-[rgb(255,179,79)]/5 backdrop-blur-sm">
+                    <CardHeader class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent">
+                        <CardTitle class="text-[rgb(0,65,110)] flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <span>Wpływ zwolnień lekarskich na emeryturę</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-6">
+                        <!-- Porównanie z/bez zwolnień -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gradient-to-br from-[rgb(0,153,63)]/10 to-white p-5 rounded-xl border-2 border-[rgb(0,153,63)]/30">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-[rgb(0,153,63)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600 font-bold">Bez uwzględnienia zwolnień</p>
+                                </div>
+                                <div class="text-3xl font-bold text-[rgb(0,153,63)] mb-2">
+                                    {{ formatCurrency(simulationResult.monthly_pension_without_sick_leave) }}
+                                </div>
+                                <p class="text-xs text-gray-600">Przy idealnej frekwencji</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-[rgb(240,94,94)]/10 to-white p-5 rounded-xl border-2 border-[rgb(240,94,94)]/30">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-[rgb(240,94,94)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600 font-bold">Z uwzględnieniem zwolnień</p>
+                                </div>
+                                <div class="text-3xl font-bold text-[rgb(240,94,94)] mb-2">
+                                    {{ formatCurrency(simulationResult.monthly_pension) }}
+                                </div>
+                                <p class="text-xs text-gray-600">
+                                    -{{ formatCurrency(simulationResult.sick_leave_impact.pension_reduction) }} 
+                                    ({{ simulationResult.sick_leave_impact.percentage_reduction.toFixed(2) }}%)
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 backdrop-blur-sm p-5 rounded-xl border border-[rgb(190,195,206)]/30 mb-6">
+                            <div class="flex items-center gap-3 mb-3">
+                                <svg class="w-6 h-6 text-[rgb(0,65,110)]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-gray-700 font-bold">Statystyka zwolnień lekarskich</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs text-gray-600 mb-1">Łączna liczba dni</p>
+                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">{{ simulationResult.sick_leave_impact.average_days }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-600 mb-1">Średnio rocznie</p>
+                                    <p class="text-2xl font-bold text-[rgb(0,65,110)]">
+                                        {{ (simulationResult.sick_leave_impact.average_days / (simulationResult.years_to_retirement + (parseInt(formData.age) - workStartAge))).toFixed(1) }} dni/rok
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-[rgb(255,179,79)]/10 to-transparent p-5 rounded-xl border-l-4 border-[rgb(255,179,79)]">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1 a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-gray-700 leading-relaxed">
+                                    <strong>Wyjaśnienie:</strong> Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane w niższej wysokości 
+                                    (około 80% utraty składki). Średnio {{ formData.gender === 'male' ? 'mężczyzna' : 'kobieta' }} pracujący w Polsce 
+                                    przebywa przez całą karierę na zwolnieniu przez około {{ simulationResult.sick_leave_impact.average_days }} dni, 
+                                    co realnie wpływa na wysokość przyszłej emerytury. W zaawansowanej symulacji możesz wprowadzić dokładne dni zwolnień 
+                                    w danych historycznych i przyszłościowych dla bardziej precyzyjnej prognozy.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <!-- Wykres wzrostu kapitału - WIZUALIZACJA -->
                 <Card v-if="simulationResult.account_growth_forecast && simulationResult.account_growth_forecast.length > 0" class="shadow-2xl border-none bg-white">
                     <CardHeader class="bg-gradient-to-r from-[rgb(63,132,210)]/10 to-transparent border-b-2 border-[rgb(63,132,210)]">
