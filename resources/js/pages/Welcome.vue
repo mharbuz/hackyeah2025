@@ -160,7 +160,7 @@ const handleSubmit = async () => {
                     <p class="text-lg text-gray-600 mb-8">
                         Wprowadź kwotę, którą chciałbyś otrzymywać jako emeryturę. Pomożemy Ci zrozumieć, jak wypada ona na tle statystyk krajowych.
                     </p>
-                    
+
                     <form @submit.prevent="handleSubmit" class="flex flex-col lg:flex-row gap-4 items-center justify-center mb-6">
                         <div class="relative flex-1 max-w-md">
                             <input
@@ -169,7 +169,7 @@ const handleSubmit = async () => {
                                 step="100"
                                 min="500"
                                 placeholder="np. 3500"
-                                class="w-full text-2xl lg:text-3xl font-semibold px-6 py-4 border-3 border-[rgb(190,195,206)] rounded-xl focus:outline-none focus:border-[rgb(0,153,63)] transition-colors"
+                                class="w-full text-2xl lg:text-3xl font-semibold px-6 py-4 border-3 border-[rgb(190,195,206)] rounded-xl focus:outline-none focus:border-[rgb(0,153,63)] transition-colors text-black"
                                 required
                             />
                             <span class="absolute right-6 top-1/2 -translate-y-1/2 text-2xl lg:text-3xl font-semibold text-gray-400">zł</span>
@@ -201,22 +201,22 @@ const handleSubmit = async () => {
                     <h3 class="text-2xl lg:text-3xl font-bold text-[rgb(0,65,110)] mb-6 text-center">
                         Twoja emerytura w porównaniu do średniej
                     </h3>
-                    
+
                     <div class="grid lg:grid-cols-3 gap-6 mb-8">
                         <div class="bg-gradient-to-br from-[rgb(63,132,210)] to-[rgb(0,153,63)] rounded-xl p-6 text-white text-center">
                             <div class="text-sm font-medium mb-2 opacity-90">Twoja docelowa emerytura</div>
                             <div class="text-4xl font-bold mb-1">{{ formatCurrency(desiredPension) }}</div>
                         </div>
-                        
+
                         <div class="bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(0,65,110)] rounded-xl p-6 text-white text-center">
                             <div class="text-sm font-medium mb-2 opacity-90">Średnia krajowa</div>
                             <div class="text-4xl font-bold mb-1">{{ formatCurrency(averagePension) }}</div>
                         </div>
-                        
+
                         <div :class="[
                             'rounded-xl p-6 text-white text-center',
-                            parseFloat(percentageDifference) >= 0 
-                                ? 'bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(255,179,79)]' 
+                            parseFloat(percentageDifference) >= 0
+                                ? 'bg-gradient-to-br from-[rgb(0,153,63)] to-[rgb(255,179,79)]'
                                 : 'bg-gradient-to-br from-[rgb(240,94,94)] to-[rgb(190,195,206)]'
                         ]">
                             <div class="text-sm font-medium mb-2 opacity-90">Różnica</div>
@@ -269,8 +269,8 @@ const handleSubmit = async () => {
                                     <div class="h-12 bg-gray-100 rounded-full overflow-hidden shadow-inner">
                                         <div
                                             class="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-4"
-                                            :style="{ 
-                                                width: group.percentage + '%', 
+                                            :style="{
+                                                width: group.percentage + '%',
                                                 backgroundColor: group.color,
                                                 opacity: hoveredGroup === index ? 1 : 0.8
                                             }"
@@ -282,7 +282,7 @@ const handleSubmit = async () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Tooltip z opisem -->
                             <div
                                 v-if="hoveredGroup === index"
@@ -381,7 +381,7 @@ const handleSubmit = async () => {
     input[type="number"] {
         font-size: 1.5rem;
     }
-    
+
     button {
         min-height: 56px;
     }
