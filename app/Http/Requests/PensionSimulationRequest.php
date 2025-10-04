@@ -49,6 +49,7 @@ class PensionSimulationRequest extends FormRequest
             'account_balance' => 'nullable|numeric|min:0|max:10000000',
             'subaccount_balance' => 'nullable|numeric|min:0|max:10000000',
             'include_sick_leave' => 'boolean',
+            'forecast_variant' => 'nullable|in:variant_1,variant_2,variant_3',
         ];
     }
 
@@ -87,6 +88,8 @@ class PensionSimulationRequest extends FormRequest
             'subaccount_balance.max' => 'Saldo subkonta przekracza dozwoloną wartość',
             
             'include_sick_leave.boolean' => 'Nieprawidłowa wartość opcji zwolnień lekarskich',
+            
+            'forecast_variant.in' => 'Nieprawidłowy wariant prognozy (dostępne: variant_1, variant_2, variant_3)',
         ];
     }
 }

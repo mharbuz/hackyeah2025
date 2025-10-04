@@ -60,7 +60,8 @@ class PensionSimulationController extends Controller
             retirementYear: $validated['retirement_year'],
             accountBalance: $validated['account_balance'] ?? null,
             subaccountBalance: $validated['subaccount_balance'] ?? null,
-            includeSickLeave: $validated['include_sick_leave'] ?? false
+            includeSickLeave: $validated['include_sick_leave'] ?? false,
+            forecastVariant: $validated['forecast_variant'] ?? 'variant_1'
         );
 
         return response()->json($result);

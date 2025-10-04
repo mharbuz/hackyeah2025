@@ -88,5 +88,33 @@ return [
             'max_offset' => 50, // +50 lat od bieżącego
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Warianty prognozy ZUS
+    |--------------------------------------------------------------------------
+    |
+    | Definicje wariantów prognoz ekonomicznych używanych w obliczeniach.
+    | Warianty bazują na oficjalnych prognozach ZUS do 2080 roku.
+    |
+    */
+
+    'forecast_variants' => [
+        'variant_1' => [
+            'name' => 'Wariant pośredni',
+            'description' => 'Średni scenariusz rozwoju gospodarczego',
+        ],
+        'variant_2' => [
+            'name' => 'Wariant pesymistyczny',
+            'description' => 'Scenariusz zakładający wolniejszy wzrost gospodarczy',
+        ],
+        'variant_3' => [
+            'name' => 'Wariant optymistyczny',
+            'description' => 'Scenariusz zakładający szybszy wzrost gospodarczy',
+        ],
+    ],
+
+    // Domyślny wariant używany w obliczeniach
+    'default_forecast_variant' => env('PENSION_DEFAULT_FORECAST_VARIANT', 'variant_1'),
 ];
 
