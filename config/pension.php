@@ -59,6 +59,9 @@ return [
 
         // Procent subkonta względem głównego konta (25%)
         'subaccount_percentage' => env('PENSION_SUBACCOUNT_PERCENTAGE', 0.25),
+
+        // Domyślna stopa zwrotu z inwestycji dla obliczeń oszczędności (6%)
+        'default_investment_return_rate' => env('PENSION_INVESTMENT_RETURN_RATE', 0.06),
     ],
 
     /*

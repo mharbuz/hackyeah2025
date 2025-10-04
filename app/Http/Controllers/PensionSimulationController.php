@@ -61,6 +61,7 @@ class PensionSimulationController extends Controller
             if ($session->form_data) {
                 return Inertia::render('PensionSimulation', [
                     'sessionUuid' => $sessionUuid,
+                    'expectedPension' => $session->pension_value,
                     'existingFormData' => $session->form_data,
                     'existingSimulationResults' => $session->simulation_results
                 ]);
@@ -68,7 +69,8 @@ class PensionSimulationController extends Controller
             
             // Session exists and has pension_value but no form data yet
             return Inertia::render('PensionSimulation', [
-                'sessionUuid' => $sessionUuid
+                'sessionUuid' => $sessionUuid,
+                'expectedPension' => $session->pension_value
             ]);
         }
         
@@ -96,6 +98,21 @@ class PensionSimulationController extends Controller
             includeSickLeave: $validated['include_sick_leave'] ?? false,
             forecastVariant: $validated['forecast_variant'] ?? 'variant_1'
         );
+
+        // Add expected pension comparison if provided
+        if (isset($validated['expected_pension']) && $validated['expected_pension'] > 0) {
+            $result['expected_pension_comparison'] = $this->calculateExpectedPensionComparison(
+                $validated['expected_pension'],
+                $result['monthly_pension'],
+                $validated['age'],
+                $validated['gender'],
+                $validated['gross_salary'],
+                $validated['retirement_year'],
+                $validated['account_balance'] ?? null,
+                $validated['subaccount_balance'] ?? null,
+                $validated['forecast_variant'] ?? 'variant_1'
+            );
+        }
 
         // If session_uuid is provided, update the existing session with form data
         if (isset($validated['session_uuid'])) {
@@ -255,5 +272,255 @@ class PensionSimulationController extends Controller
             'average_pension' => $calculationData['average_pension'] ?? 3500,
             'percentage_difference' => $calculationData['percentage_difference'] ?? 0,
         ];
+    }
+
+    /**
+     * Calculate expected pension comparison and solutions
+     */
+    private function calculateExpectedPensionComparison(
+        float $expectedPension,
+        float $predictedPension,
+        int $age,
+        string $gender,
+        float $grossSalary,
+        int $retirementYear,
+        ?float $accountBalance,
+        ?float $subaccountBalance,
+        string $forecastVariant
+    ): array {
+        $difference = $expectedPension - $predictedPension;
+        $percentageDifference = $predictedPension > 0 ? ($difference / $predictedPension) * 100 : 0;
+        $exceedsExpectations = $predictedPension >= $expectedPension;
+
+        $result = [
+            'expected_pension' => $expectedPension,
+            'predicted_pension' => $predictedPension,
+            'difference' => $difference,
+            'percentage_difference' => $percentageDifference,
+            'exceeds_expectations' => $exceedsExpectations,
+        ];
+
+        // If predicted pension is lower than expected, calculate solutions
+        if (!$exceedsExpectations) {
+            $result['solutions'] = $this->calculatePensionSolutions(
+                $expectedPension,
+                $predictedPension,
+                $age,
+                $gender,
+                $grossSalary,
+                $retirementYear,
+                $accountBalance,
+                $subaccountBalance,
+                $forecastVariant
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     * Calculate solutions to achieve expected pension
+     */
+    private function calculatePensionSolutions(
+        float $expectedPension,
+        float $predictedPension,
+        int $age,
+        string $gender,
+        float $grossSalary,
+        int $retirementYear,
+        ?float $accountBalance,
+        ?float $subaccountBalance,
+        string $forecastVariant
+    ): array {
+        $solutions = [];
+
+        // Solution 1: Extend work period
+        $solutions['extend_work_period'] = $this->calculateExtendedWorkPeriod(
+            $expectedPension,
+            $age,
+            $gender,
+            $grossSalary,
+            $accountBalance,
+            $subaccountBalance,
+            $forecastVariant
+        );
+
+        // Solution 2: Higher salary
+        $solutions['higher_salary'] = $this->calculateRequiredSalary(
+            $expectedPension,
+            $age,
+            $gender,
+            $grossSalary,
+            $retirementYear,
+            $accountBalance,
+            $subaccountBalance,
+            $forecastVariant
+        );
+
+        // Solution 3: Investment savings
+        $solutions['investment_savings'] = $this->calculateInvestmentSavings(
+            $expectedPension,
+            $predictedPension,
+            $age,
+            $gender,
+            $grossSalary,
+            $retirementYear
+        );
+
+        return $solutions;
+    }
+
+    /**
+     * Calculate how many additional years to work to achieve expected pension
+     */
+    private function calculateExtendedWorkPeriod(
+        float $expectedPension,
+        int $age,
+        string $gender,
+        float $grossSalary,
+        ?float $accountBalance,
+        ?float $subaccountBalance,
+        string $forecastVariant
+    ): array {
+        $additionalYears = 0;
+        $maxAdditionalYears = 10; // Maximum 10 additional years
+        
+        for ($years = 1; $years <= $maxAdditionalYears; $years++) {
+            $newRetirementYear = (new \DateTime())->format('Y') + ($this->getRetirementAge($gender) - $age) + $years;
+            
+            $result = $this->calculationService->calculatePension(
+                age: $age,
+                gender: $gender,
+                grossSalary: $grossSalary,
+                retirementYear: (int) $newRetirementYear,
+                accountBalance: $accountBalance,
+                subaccountBalance: $subaccountBalance,
+                includeSickLeave: false,
+                forecastVariant: $forecastVariant
+            );
+            
+            if ($result['monthly_pension'] >= $expectedPension) {
+                $additionalYears = $years;
+                break;
+            }
+        }
+
+        if ($additionalYears > 0) {
+            $newRetirementYear = (new \DateTime())->format('Y') + ($this->getRetirementAge($gender) - $age) + $additionalYears;
+            $finalResult = $this->calculationService->calculatePension(
+                age: $age,
+                gender: $gender,
+                grossSalary: $grossSalary,
+                retirementYear: (int) $newRetirementYear,
+                accountBalance: $accountBalance,
+                subaccountBalance: $subaccountBalance,
+                includeSickLeave: false,
+                forecastVariant: $forecastVariant
+            );
+            
+            return [
+                'additional_years' => $additionalYears,
+                'new_retirement_year' => (int) $newRetirementYear,
+                'new_monthly_pension' => round($finalResult['monthly_pension'], 2),
+            ];
+        }
+
+        return [
+            'additional_years' => 0,
+            'new_retirement_year' => 0,
+            'new_monthly_pension' => 0,
+        ];
+    }
+
+    /**
+     * Calculate required salary to achieve expected pension
+     */
+    private function calculateRequiredSalary(
+        float $expectedPension,
+        int $age,
+        string $gender,
+        float $currentSalary,
+        int $retirementYear,
+        ?float $accountBalance,
+        ?float $subaccountBalance,
+        string $forecastVariant
+    ): array {
+        $requiredSalary = $currentSalary;
+        $maxSalary = $currentSalary * 3; // Maximum 3x current salary
+        $step = $currentSalary * 0.1; // 10% steps
+        
+        for ($salary = $currentSalary + $step; $salary <= $maxSalary; $salary += $step) {
+            $result = $this->calculationService->calculatePension(
+                age: $age,
+                gender: $gender,
+                grossSalary: $salary,
+                retirementYear: $retirementYear,
+                accountBalance: $accountBalance,
+                subaccountBalance: $subaccountBalance,
+                includeSickLeave: false,
+                forecastVariant: $forecastVariant
+            );
+            
+            if ($result['monthly_pension'] >= $expectedPension) {
+                $requiredSalary = $salary;
+                break;
+            }
+        }
+
+        $salaryIncrease = $requiredSalary - $currentSalary;
+        $percentageIncrease = $currentSalary > 0 ? ($salaryIncrease / $currentSalary) * 100 : 0;
+
+        return [
+            'required_salary' => round($requiredSalary, 2),
+            'salary_increase' => round($salaryIncrease, 2),
+            'percentage_increase' => round($percentageIncrease, 2),
+        ];
+    }
+
+    /**
+     * Calculate investment savings needed to compensate for pension gap
+     */
+    private function calculateInvestmentSavings(
+        float $expectedPension,
+        float $predictedPension,
+        int $age,
+        string $gender,
+        float $grossSalary,
+        int $retirementYear
+    ): array {
+        $pensionGap = $expectedPension - $predictedPension;
+        $yearsToRetirement = $retirementYear - (new \DateTime())->format('Y');
+        $investmentReturnRate = config('pension.calculation.default_investment_return_rate', 0.06);
+        $lifeExpectancyYears = $gender === 'male' ? 20 : 25; // Years on pension
+        
+        // Calculate total amount needed to cover the gap for life expectancy
+        $totalGapNeeded = $pensionGap * 12 * $lifeExpectancyYears;
+        
+        // Calculate monthly savings needed with compound interest
+        $monthlyRate = $investmentReturnRate / 12;
+        $totalMonths = $yearsToRetirement * 12;
+        
+        if ($monthlyRate > 0 && $totalMonths > 0) {
+            $monthlySavings = $totalGapNeeded * $monthlyRate / (pow(1 + $monthlyRate, $totalMonths) - 1);
+        } else {
+            $monthlySavings = $totalGapNeeded / $totalMonths;
+        }
+        
+        $percentageOfSalary = $grossSalary > 0 ? ($monthlySavings / $grossSalary) * 100 : 0;
+
+        return [
+            'monthly_savings' => round($monthlySavings, 2),
+            'percentage_of_salary' => round($percentageOfSalary, 2),
+            'investment_return_rate' => $investmentReturnRate * 100,
+            'total_investment_needed' => round($totalGapNeeded, 2),
+        ];
+    }
+
+    /**
+     * Get retirement age based on gender
+     */
+    private function getRetirementAge(string $gender): int
+    {
+        return $gender === 'male' ? 65 : 60;
     }
 }

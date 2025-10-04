@@ -49,6 +49,7 @@ class PensionSimulationRequest extends FormRequest
             'account_balance' => 'nullable|numeric|min:0|max:10000000',
             'subaccount_balance' => 'nullable|numeric|min:0|max:10000000',
             'include_sick_leave' => 'boolean',
+            'expected_pension' => 'nullable|numeric|min:500|max:50000',
             'forecast_variant' => 'nullable|in:variant_1,variant_2,variant_3',
             'session_uuid' => 'nullable|string|uuid',
         ];
@@ -89,6 +90,10 @@ class PensionSimulationRequest extends FormRequest
             'subaccount_balance.max' => 'Saldo subkonta przekracza dozwoloną wartość',
             
             'include_sick_leave.boolean' => 'Nieprawidłowa wartość opcji zwolnień lekarskich',
+            
+            'expected_pension.numeric' => 'Oczekiwana emerytura musi być liczbą',
+            'expected_pension.min' => 'Oczekiwana emerytura musi wynosić co najmniej 500 zł',
+            'expected_pension.max' => 'Oczekiwana emerytura nie może przekraczać 50 000 zł',
             
             'forecast_variant.in' => 'Nieprawidłowy wariant prognozy (dostępne: variant_1, variant_2, variant_3)',
         ];
