@@ -1,0 +1,57 @@
+FROM php:8.2-cli
+
+# Instaluj zależności systemowe
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    git \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    sqlite3 \
+    libsqlite3-dev \
+    libonig-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instaluj Node.js 22.x
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instaluj rozszerzenia PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo \
+    pdo_sqlite \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip
+
+# Instaluj Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Ustaw katalog roboczy
+WORKDIR /var/www/html
+
+# Kopiuj pliki aplikacji
+COPY . .
+
+# Ustaw uprawnienia
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Eksponuj porty
+EXPOSE 8000 5173
+
+# Domyślne polecenie
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
+
