@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
+import axios from 'axios';
 
 // Dane o grupach emerytalnych
 const pensionGroups = [
@@ -42,22 +43,13 @@ const pensionGroups = [
     }
 ];
 
-// Ciekawostki
-const funFacts = [
-    'Czy wiesz, że najwyższą emeryturę w Polsce otrzymuje mieszkaniec województwa śląskiego, wysokość jego emerytury to 48 320 zł, pracował przez 42 lata, nie był nigdy na zwolnieniu lekarskim.',
-    'Średni wiek przejścia na emeryturę w Polsce to 61 lat dla kobiet i 64 lata dla mężczyzn.',
-    'W Polsce na 100 pracujących przypada około 70 emerytów - jest to jeden z najwyższych wskaźników w Europie.',
-    'Najniższa emerytura w Polsce może wynosić zaledwie kilkadziesiąt złotych, jeśli ktoś pracował bardzo krótko.',
-    'Emerytury nauczycieli akademickich są średnio o 40% wyższe niż średnia krajowa ze względu na długi staż i wysokie kwalifikacje.',
-    'Około 60% polskich emerytów to kobiety, co wynika z dłuższej średniej długości życia.'
-];
-
 // Stan komponentu
 const desiredPension = ref<number | null>(null);
 const inputValue = ref('');
 const hoveredGroup = ref<number | null>(null);
 const currentFunFact = ref('');
 const showResults = ref(false);
+const isLoadingFact = ref(false);
 
 // Średnia krajowa
 const averagePension = 3500;
@@ -84,19 +76,30 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
+// Pobierz losową ciekawostkę z backendu
+const fetchRandomFact = async () => {
+    isLoadingFact.value = true;
+    try {
+        const response = await axios.get('/api/pension-fact/random');
+        currentFunFact.value = response.data.fact;
+    } catch (error) {
+        console.error('Błąd podczas pobierania ciekawostki:', error);
+        currentFunFact.value = 'Nie udało się załadować ciekawostki. Spróbuj ponownie później.';
+    } finally {
+        isLoadingFact.value = false;
+    }
+};
+
 // Obsługa formularza
-const handleSubmit = () => {
+const handleSubmit = async () => {
     const value = parseFloat(inputValue.value);
     if (value && value > 0) {
         desiredPension.value = value;
         showResults.value = true;
+        // Pobierz nową ciekawostkę przy każdym sprawdzeniu
+        await fetchRandomFact();
     }
 };
-
-// Losowa ciekawostka przy załadowaniu
-onMounted(() => {
-    currentFunFact.value = funFacts[Math.floor(Math.random() * funFacts.length)];
-});
 </script>
 
 <template>
@@ -308,13 +311,17 @@ onMounted(() => {
                 <div class="bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-2xl shadow-2xl p-8 lg:p-12 text-white">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0">
-                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                            <svg v-if="!isLoadingFact" class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <svg v-else class="w-12 h-12 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         </div>
                         <div class="flex-1">
                             <h3 class="text-2xl font-bold mb-3">Czy wiesz, że...</h3>
-                            <p class="text-lg leading-relaxed">{{ currentFunFact }}</p>
+                            <p class="text-lg leading-relaxed">{{ currentFunFact || 'Ładowanie ciekawostki...' }}</p>
                         </div>
                     </div>
                 </div>
@@ -351,42 +358,42 @@ onMounted(() => {
             </p>
         </footer>
     </div>
-
-    <style scoped>
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-fadeIn {
-        animation: fadeIn 0.5s ease-out forwards;
-    }
-
-    /* Lepsze dostosowanie dla osób starszych - większe elementy */
-    @media (max-width: 768px) {
-        input[type="number"] {
-            font-size: 1.5rem;
-        }
-        
-        button {
-            min-height: 56px;
-        }
-    }
-
-    /* Wysoki kontrast dla WCAG 2.0 */
-    input:focus {
-        box-shadow: 0 0 0 3px rgba(0, 153, 63, 0.3);
-    }
-
-    button:focus {
-        outline: 3px solid rgba(255, 255, 255, 0.8);
-        outline-offset: 2px;
-    }
-    </style>
 </template>
+
+<style scoped>
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Lepsze dostosowanie dla osób starszych - większe elementy */
+@media (max-width: 768px) {
+    input[type="number"] {
+        font-size: 1.5rem;
+    }
+    
+    button {
+        min-height: 56px;
+    }
+}
+
+/* Wysoki kontrast dla WCAG 2.0 */
+input:focus {
+    box-shadow: 0 0 0 3px rgba(0, 153, 63, 0.3);
+}
+
+button:focus {
+    outline: 3px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+</style>
