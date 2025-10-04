@@ -10,6 +10,7 @@ services:
       - ./:/var/www/html
       - ./storage:/var/www/html/storage
       - ./database:/var/www/html/database
+      - node_modules:/var/www/html/node_modules
     ports:
       - "8000:80"
     environment:
@@ -85,5 +86,7 @@ volumes:
   mysql_data:
     driver: local
   redis_data:
+    driver: local
+  node_modules:
     driver: local
 

@@ -59,7 +59,13 @@ ls -la node_modules/.bin/ | grep vite || echo '⚠️ Ostrzeżenie: vite nie zna
 
 # Instalacja zależności Composer
 echo '📦 Instalacja zależności Composer...'
-composer install --no-interaction --no-scripts --prefer-dist
+if [ ! -d "vendor" ] || [ -z "$(ls -A vendor 2>/dev/null)" ]; then
+    echo '   Katalog vendor pusty lub nie istnieje - pełna instalacja...'
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+else
+    echo '   Sprawdzanie i aktualizacja zależności...'
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+fi
 composer run-script post-autoload-dump
 
 # Generowanie klucza aplikacji

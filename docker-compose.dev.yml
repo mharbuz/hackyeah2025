@@ -9,7 +9,6 @@ services:
     volumes:
       - ./:/var/www/html
       - node_modules:/var/www/html/node_modules
-      - vendor:/var/www/html/vendor
     ports:
       - "8000:8000"
       - "5173:5173"
@@ -78,7 +77,5 @@ volumes:
   redis_data:
     driver: local
   node_modules:
-    driver: local
-  vendor:
     driver: local
 
