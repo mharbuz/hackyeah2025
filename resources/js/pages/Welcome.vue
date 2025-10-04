@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
+import pensionSimulation from '@/routes/pension-simulation';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
@@ -319,11 +320,30 @@ const copyShareLink = async () => {
                         </button>
                     </form>
 
-                    <div class="flex items-center justify-center gap-2 text-gray-500">
+                    <div class="flex items-center justify-center gap-2 text-gray-500 mb-6">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                         </svg>
                         <span>Średnia emerytura w Polsce: <strong class="text-[rgb(0,153,63)]">{{ formatCurrency(averagePension) }}</strong></span>
+                    </div>
+
+                    <!-- Przycisk do symulacji przyszłej emerytury -->
+                    <div class="border-t-2 border-gray-100 pt-6">
+                        <Link
+                            :href="pensionSimulation.index()"
+                            class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 px-8 py-4 text-xl font-bold text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <span>Symulacja przyszłej emerytury</span>
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </Link>
+                        <p class="text-sm text-gray-500 mt-3">
+                            Oblicz szacunkową wysokość swojej przyszłej emerytury na podstawie wieku, wynagrodzenia i planów zawodowych
+                        </p>
                     </div>
                 </div>
             </div>

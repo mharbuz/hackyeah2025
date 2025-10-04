@@ -19,6 +19,9 @@ Route::get('/api/pension-fact/random', [PensionFactController::class, 'random'])
 // Pension simulation routes
 Route::post('/api/pension-simulation', [PensionSimulationController::class, 'store'])->name('pension.simulation.store');
 Route::get('/session/{uuid}', [PensionSimulationController::class, 'show'])->name('pension.session.show');
+// Symulacja przyszłej emerytury
+Route::get('/symulacja-emerytury', [PensionSimulationController::class, 'index'])->name('pension-simulation.index');
+Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simulate'])->name('pension-simulation.simulate');
 
 // Test routes
 Route::prefix('test')->group(function () {

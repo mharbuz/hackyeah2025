@@ -1,0 +1,8 @@
+---
+globs: *.php
+alwaysApply: false
+---
+- Kod pisz zgodnie z PSR.
+- Trzymaj się SOLID, KISS, DRY
+- Dodawaj komentarze nad metodami i klasami opisując czymm się zajmują
+- Nie twórz logiki w kontrolerach tylko rozdzielaj do oddzielnych serwisów (Kontroler -> Serwis)
