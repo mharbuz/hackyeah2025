@@ -357,6 +357,14 @@ const resetForm = () => {
     simulationResult.value = null;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+
+// Generate URL for advanced dashboard with session parameter
+const getAdvancedDashboardUrl = () => {
+    if (props.sessionUuid) {
+        return `/dashboard-prognozowania?session=${props.sessionUuid}`;
+    }
+    return '/dashboard-prognozowania';
+};
 </script>
 
 <template>
@@ -1490,15 +1498,15 @@ const resetForm = () => {
                         </svg>
                         Wykonaj nową symulację
                     </Button>
-                    <a
-                        href="/dashboard-prognozowania"
+                    <Link
+                        :href="getAdvancedDashboardUrl()"
                         class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(63,132,210)] to-[rgb(0,65,110)] text-white hover:from-[rgb(63,132,210)]/90 hover:to-[rgb(0,65,110)]/90 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                         Zaawansowany Dashboard
-                    </a>
+                    </Link>
                     <Link
                         :href="home()"
                         class="flex-1 h-14 text-lg font-semibold bg-gradient-to-r from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 text-white hover:from-[rgb(255,179,79)]/90 hover:to-[rgb(255,179,79)]/70 rounded-md flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl"

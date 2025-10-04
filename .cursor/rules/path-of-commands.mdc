@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+when you want to execute command just execute it from project main folder
+dont need to attach always `cd /home/maciej/Projekty/hackyeah2025/repo && ` to the current command

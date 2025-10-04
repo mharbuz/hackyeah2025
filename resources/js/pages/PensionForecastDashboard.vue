@@ -1,11 +1,31 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed, watch, reactive } from 'vue';
+import { ref, computed, watch, reactive, onMounted } from 'vue';
 import { home } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Props
+interface Props {
+    sessionUuid?: string;
+    expectedPension?: number; // Expected pension from session
+    existingFormData?: {
+        age: number;
+        gender: 'male' | 'female';
+        gross_salary: number;
+        retirement_year: number;
+        account_balance?: number;
+        subaccount_balance?: number;
+        wage_indexation_rate: number;
+        historical_data?: YearlyData[];
+        future_data?: YearlyData[];
+    };
+    existingSimulationResults?: any;
+}
+
+const props = defineProps<Props>();
 
 // Typy
 interface YearlyData {
@@ -17,7 +37,7 @@ interface YearlyData {
 interface FormData {
     age: string;
     gender: 'male' | 'female' | '';
-    current_gross_salary: string;
+    gross_salary: string;
     retirement_year: string;
     account_balance: string;
     subaccount_balance: string;
@@ -56,7 +76,7 @@ interface SimulationResult {
 const formData = ref<FormData>({
     age: '',
     gender: '',
-    current_gross_salary: '',
+    gross_salary: '',
     retirement_year: '',
     account_balance: '',
     subaccount_balance: '',
@@ -83,6 +103,9 @@ const retirementAge = computed(() => {
     if (formData.value.gender === 'female') return 60;
     return null;
 });
+
+// Expected pension from session
+const expectedPension = computed(() => props.expectedPension);
 
 // Automatyczne obliczenie roku emerytalnego
 watch([() => formData.value.age, () => formData.value.gender], () => {
@@ -192,8 +215,8 @@ const validateForm = (): boolean => {
         return false;
     }
     
-    if (!formData.value.current_gross_salary) {
-        errors.value.current_gross_salary = 'Wynagrodzenie jest wymagane';
+    if (!formData.value.gross_salary) {
+        errors.value.gross_salary = 'Wynagrodzenie jest wymagane';
         return false;
     }
     
@@ -209,23 +232,30 @@ const handleSimulate = async () => {
     isSubmitting.value = true;
     
     try {
+        const requestBody: any = {
+            age: parseInt(formData.value.age),
+            gender: formData.value.gender,
+            gross_salary: parseFloat(formData.value.gross_salary),
+            retirement_year: parseInt(formData.value.retirement_year),
+            account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
+            subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
+            wage_indexation_rate: parseFloat(formData.value.wage_indexation_rate),
+            historical_data: historicalData.value,
+            future_data: futureData.value
+        };
+
+        // Include session UUID if present
+        if (props.sessionUuid) {
+            requestBody.session_uuid = props.sessionUuid;
+        }
+
         const response = await fetch('/api/pension/advanced-simulate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
-            body: JSON.stringify({
-                age: parseInt(formData.value.age),
-                gender: formData.value.gender,
-                current_gross_salary: parseFloat(formData.value.current_gross_salary),
-                retirement_year: parseInt(formData.value.retirement_year),
-                account_balance: formData.value.account_balance ? parseFloat(formData.value.account_balance) : null,
-                subaccount_balance: formData.value.subaccount_balance ? parseFloat(formData.value.subaccount_balance) : null,
-                wage_indexation_rate: parseFloat(formData.value.wage_indexation_rate),
-                historical_data: historicalData.value,
-                future_data: futureData.value
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();
@@ -254,7 +284,7 @@ const resetForm = () => {
     formData.value = {
         age: '',
         gender: '',
-        current_gross_salary: '',
+        gross_salary: '',
         retirement_year: '',
         account_balance: '',
         subaccount_balance: '',
@@ -378,6 +408,37 @@ const generatePDF = async () => {
         isGeneratingPDF.value = false;
     }
 };
+
+// Populate form with existing data if available
+onMounted(() => {
+    if (props.existingFormData) {
+        formData.value = {
+            age: props.existingFormData.age?.toString() || '',
+            gender: props.existingFormData.gender || '',
+            gross_salary: props.existingFormData.gross_salary?.toString() || '',
+            retirement_year: props.existingFormData.retirement_year?.toString() || '',
+            account_balance: props.existingFormData.account_balance?.toString() || '',
+            subaccount_balance: props.existingFormData.subaccount_balance?.toString() || '',
+            wage_indexation_rate: props.existingFormData.wage_indexation_rate?.toString() || '5.0'
+        };
+        
+        // Populate historical data if available
+        if (props.existingFormData.historical_data && Array.isArray(props.existingFormData.historical_data)) {
+            historicalData.value = props.existingFormData.historical_data;
+        }
+        
+        // Populate future data if available
+        if (props.existingFormData.future_data && Array.isArray(props.existingFormData.future_data)) {
+            futureData.value = props.existingFormData.future_data;
+        }
+    }
+    
+    // If there are existing simulation results, show them
+    if (props.existingSimulationResults) {
+        simulationResult.value = props.existingSimulationResults;
+        showResults.value = true;
+    }
+});
 </script>
 
 <template>
@@ -428,6 +489,14 @@ const generatePDF = async () => {
                 <p class="text-white/90 text-lg md:text-xl max-w-3xl mx-auto drop-shadow">
                     Wprowadź dokładne dane historyczne i przyszłościowe dla najprecyzyjniejszej prognozy
                 </p>
+                <!-- Expected Pension Display -->
+                <div v-if="expectedPension" class="mt-6 inline-block bg-white/95 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-2xl">
+                    <p class="text-sm text-[rgb(0,65,110)] font-semibold mb-1">Twoja oczekiwana emerytura:</p>
+                    <p class="text-4xl font-bold text-[rgb(255,179,79)]">
+                        {{ expectedPension.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} zł
+                    </p>
+                    <p class="text-xs text-gray-600 mt-1">Zoptymalizuj swoje oszczędności, aby osiągnąć ten cel</p>
+                </div>
             </div>
 
             <!-- Główny formularz -->
@@ -541,13 +610,13 @@ const generatePDF = async () => {
                         <!-- Wynagrodzenie i salda -->
                         <div class="grid md:grid-cols-3 gap-6">
                             <div class="space-y-3">
-                                <Label for="current_gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
+                                <Label for="gross_salary" class="text-base font-semibold text-[rgb(0,65,110)]">
                                     Obecne wynagrodzenie brutto <span class="text-[rgb(240,94,94)]">*</span>
                                 </Label>
                                 <div class="relative">
                                     <Input
-                                        id="current_gross_salary"
-                                        v-model="formData.current_gross_salary"
+                                        id="gross_salary"
+                                        v-model="formData.gross_salary"
                                         type="number"
                                         step="100"
                                         placeholder="np. 5000"
