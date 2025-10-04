@@ -384,20 +384,28 @@ class PensionSimulationController extends Controller
     ): array {
         $additionalYears = 0;
         $maxAdditionalYears = 10; // Maximum 10 additional years
+        $currentYear = (int) (new \DateTime())->format('Y');
+        $retirementAge = $this->getRetirementAge($gender);
         
         for ($years = 1; $years <= $maxAdditionalYears; $years++) {
-            $newRetirementYear = (new \DateTime())->format('Y') + ($this->getRetirementAge($gender) - $age) + $years;
+            // Calculate new retirement age (original + additional years)
+            $newRetirementAge = $retirementAge + $years;
             
+            // Calculate new retirement year
+            $newRetirementYear = $currentYear + ($newRetirementAge - $age);
+            
+            // Calculate pension with extended work period
             $result = $this->calculationService->calculatePension(
                 age: $age,
                 gender: $gender,
                 grossSalary: $grossSalary,
-                retirementYear: (int) $newRetirementYear,
+                retirementYear: $newRetirementYear,
                 accountBalance: $accountBalance,
                 subaccountBalance: $subaccountBalance,
                 includeSickLeave: false,
                 forecastVariant: $forecastVariant
             );
+            
             
             if ($result['monthly_pension'] >= $expectedPension) {
                 $additionalYears = $years;
@@ -406,12 +414,14 @@ class PensionSimulationController extends Controller
         }
 
         if ($additionalYears > 0) {
-            $newRetirementYear = (new \DateTime())->format('Y') + ($this->getRetirementAge($gender) - $age) + $additionalYears;
+            $newRetirementAge = $retirementAge + $additionalYears;
+            $newRetirementYear = $currentYear + ($newRetirementAge - $age);
+            
             $finalResult = $this->calculationService->calculatePension(
                 age: $age,
                 gender: $gender,
                 grossSalary: $grossSalary,
-                retirementYear: (int) $newRetirementYear,
+                retirementYear: $newRetirementYear,
                 accountBalance: $accountBalance,
                 subaccountBalance: $subaccountBalance,
                 includeSickLeave: false,
@@ -420,7 +430,7 @@ class PensionSimulationController extends Controller
             
             return [
                 'additional_years' => $additionalYears,
-                'new_retirement_year' => (int) $newRetirementYear,
+                'new_retirement_year' => $newRetirementYear,
                 'new_monthly_pension' => round($finalResult['monthly_pension'], 2),
             ];
         }

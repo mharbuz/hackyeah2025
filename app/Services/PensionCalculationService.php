@@ -58,7 +58,10 @@ class PensionCalculationService
         // Użyj domyślnego wariantu z konfiguracji, jeśli nie podano
         $forecastVariant = $forecastVariant ?? config('pension.default_forecast_variant', 'variant_1');
         $retirementAge = $this->getRetirementAge($gender);
-        $yearsToRetirement = $retirementAge - $age;
+        
+        // Calculate years to retirement based on the provided retirement year
+        $currentYear = (int) date('Y');
+        $yearsToRetirement = $retirementYear - $currentYear;
 
         // Oszacuj salda, jeśli nie podano
         if ($accountBalance === null) {
