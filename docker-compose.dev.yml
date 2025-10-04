@@ -6,6 +6,9 @@ services:
     container_name: zus_symulator_app_dev
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - .env.docker
     volumes:
       - ./:/var/www/html
       - node_modules:/var/www/html/node_modules

@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+
+commands from command line should be executed in docker container
+i start my container with command `docker compose -f docker-compose.dev.yml up --build`
+docker compose exec -f docker-compose.dev.yml ... is proper command
+for example `docker compose -f docker-compose.dev.yml exec app php artisan migrate`
