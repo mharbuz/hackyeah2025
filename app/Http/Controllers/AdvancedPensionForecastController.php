@@ -72,8 +72,8 @@ class AdvancedPensionForecastController extends Controller
                     'gender' => $formData['gender'] ?? null,
                     'gross_salary' => $formData['gross_salary'] ?? null,
                     'retirement_year' => $formData['retirement_year'] ?? null,
-                    'account_balance' => $formData['account_balance'] ?? null,
-                    'subaccount_balance' => $formData['subaccount_balance'] ?? null,
+                    'account_balance' => !empty($formData['account_balance']) ? $formData['account_balance'] : null,
+                    'subaccount_balance' => !empty($formData['subaccount_balance']) ? $formData['subaccount_balance'] : null,
                     'wage_indexation_rate' => $formData['wage_indexation_rate'] ?? 5.0, // Default value
                     'historical_data' => $formData['historical_data'] ?? [],
                     'future_data' => $formData['future_data'] ?? [],
@@ -377,18 +377,69 @@ class AdvancedPensionForecastController extends Controller
     public function generatePdfReport(Request $request)
     {
         try {
-            $profile = $request->input('profile');
-            $simulationResults = $request->input('simulation_results');
-            $historicalData = $request->input('historical_data', []);
-            $futureData = $request->input('future_data', []);
+            $sessionUuid = $request->query('session');
+            
+            if (!$sessionUuid) {
+                return response()->json([
+                    'error' => 'Brak parametru sesji',
+                    'message' => 'Parametr session jest wymagany'
+                ], 400);
+            }
+
+            // Pobierz dane z sesji
+            $session = PensionSession::where('uuid', $sessionUuid)
+                ->notExpired()
+                ->first();
+
+            // 404 - Session not found
+            if (!$session) {
+                return response()->json([
+                    'error' => 'Sesja nie została znaleziona',
+                    'message' => 'Podana sesja nie istnieje lub wygasła'
+                ], 404);
+            }
+
+            // 400 - Missing required data
+            if (is_null($session->calculation_data) || is_null($session->form_data) || is_null($session->simulation_results)) {
+                $missingFields = [];
+                if (is_null($session->calculation_data)) $missingFields[] = 'calculation_data';
+                if (is_null($session->form_data)) $missingFields[] = 'form_data';
+                if (is_null($session->simulation_results)) $missingFields[] = 'simulation_results';
+                
+                return response()->json([
+                    'error' => 'Niekompletne dane sesji',
+                    'message' => 'Sesja nie zawiera wymaganych danych: ' . implode(', ', $missingFields),
+                    'missing_fields' => $missingFields
+                ], 400);
+            }
+
+            $formData = $session->form_data;
+            $simulationResults = $session->simulation_results;
+            
+            // Generate missing data using the same algorithms as frontend
+            $generatedData = $this->generateMissingData($formData);
+            $historicalData = $generatedData['historical_data'];
+            $futureData = $generatedData['future_data'];
 
             // Przygotowanie danych do raportu
             $data = [
-                'profile' => $profile,
+                'profile' => [
+                    'age' => $formData['age'],
+                    'gender' => $formData['gender'],
+                    'work_start_age' => $formData['age'] - ($formData['age'] - 25), // Estimate work start age
+                    'current_gross_salary' => $formData['gross_salary'],
+                    'retirement_year' => $formData['retirement_year'],
+                    'account_balance' => $formData['account_balance'] ?? null,
+                    'subaccount_balance' => $formData['subaccount_balance'] ?? null,
+                    'wage_indexation_rate' => $formData['wage_indexation_rate'] ?? 5.0,
+                ],
                 'simulation_results' => $simulationResults,
                 'historical_data' => $historicalData,
                 'future_data' => $futureData,
                 'generation_date' => now()->format('Y-m-d H:i:s'),
+                'current_date' => now()->format('Y-m-d'),
+                'session_uuid' => $sessionUuid,
+                'app_url' => config('app.url'),
             ];
 
             // Generowanie PDF z widoku
@@ -402,7 +453,7 @@ class AdvancedPensionForecastController extends Controller
             // Nazwa pliku
             $fileName = sprintf(
                 'Raport_Emerytalny_%dlat_%s.pdf',
-                $profile['age'],
+                $formData['age'],
                 now()->format('Y-m-d')
             );
 
@@ -420,6 +471,88 @@ class AdvancedPensionForecastController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generuje brakujące dane historyczne i przyszłościowe używając tych samych algorytmów co frontend
+     *
+     * @param array $formData Dane formularza z sesji
+     * @return array Wygenerowane dane historyczne i przyszłościowe
+     */
+    private function generateMissingData(array $formData): array
+    {
+        $currentYear = date('Y');
+        $age = $formData['age'];
+        $retirementYear = $formData['retirement_year'];
+        $currentSalary = $formData['gross_salary'];
+        $wageIndexationRate = $formData['wage_indexation_rate'] ?? 5.0;
+        $workStartAge = 25; // Default work start age
+
+        // Generate historical_data if empty (same algorithm as frontend)
+        $historicalData = $formData['historical_data'] ?? [];
+        if (empty($historicalData)) {
+            $yearsWorked = max(0, $age - $workStartAge);
+            
+            for ($i = 0; $i < $yearsWorked; $i++) {
+                $year = $currentYear - $yearsWorked + $i;
+                $historicalData[] = [
+                    'year' => $year,
+                    'gross_salary' => 0,
+                    'sick_leave_days' => 0
+                ];
+            }
+        }
+
+        // Generate future_data if empty (same algorithm as frontend)
+        $futureData = $formData['future_data'] ?? [];
+        if (empty($futureData)) {
+            $yearsToRetirement = $retirementYear - $currentYear;
+            
+            for ($i = 1; $i <= $yearsToRetirement; $i++) {
+                $year = $currentYear + $i;
+                $futureData[] = [
+                    'year' => $year,
+                    'gross_salary' => 0,
+                    'sick_leave_days' => 0
+                ];
+            }
+        }
+
+        // Auto-fill historical data with calculated salaries (same algorithm as frontend)
+        if (!empty($historicalData)) {
+            $avgGrowthRate = 0.05; // 5% growth per year
+            
+            for ($i = 0; $i < count($historicalData); $i++) {
+                if ($historicalData[$i]['gross_salary'] == 0) {
+                    $yearsAgo = count($historicalData) - $i;
+                    $salary = $currentSalary / pow(1 + $avgGrowthRate, $yearsAgo);
+                    $historicalData[$i]['gross_salary'] = round($salary);
+                }
+                if ($historicalData[$i]['sick_leave_days'] == 0) {
+                    $historicalData[$i]['sick_leave_days'] = rand(5, 10); // 5-10 days
+                }
+            }
+        }
+
+        // Auto-fill future data with calculated salaries (same algorithm as frontend)
+        if (!empty($futureData)) {
+            $indexationRate = $wageIndexationRate / 100;
+            
+            for ($i = 0; $i < count($futureData); $i++) {
+                if ($futureData[$i]['gross_salary'] == 0) {
+                    $salary = $currentSalary * pow(1 + $indexationRate, $i + 1);
+                    $futureData[$i]['gross_salary'] = round($salary);
+                }
+                if ($futureData[$i]['sick_leave_days'] == 0) {
+                    $futureData[$i]['sick_leave_days'] = 7; // Average 7 days per year
+                }
+            }
+        }
+
+        return [
+            'historical_data' => $historicalData,
+            'future_data' => $futureData
+        ];
     }
 }
 

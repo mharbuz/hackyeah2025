@@ -53,7 +53,7 @@ Route::post('/api/pension/simulate', [PensionSimulationController::class, 'simul
 // Zaawansowany dashboard prognozowania
 Route::get('/dashboard-prognozowania', [AdvancedPensionForecastController::class, 'index'])->name('pension-forecast-dashboard.index');
 Route::post('/api/pension/advanced-simulate', [AdvancedPensionForecastController::class, 'simulate'])->name('pension-forecast-dashboard.simulate');
-Route::post('/api/pension/generate-pdf-report', [AdvancedPensionForecastController::class, 'generatePdfReport'])->name('pension-forecast-dashboard.generate-pdf');
+Route::get('/api/pension/pdf-report', [AdvancedPensionForecastController::class, 'generatePdfReport'])->name('pension-forecast-dashboard.generate-pdf');
 
 // Test routes
 Route::prefix('test')->group(function () {
