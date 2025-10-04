@@ -6,13 +6,13 @@ use App\Helper\ForecastFileHelper;
 
 /**
  * Serwis odpowiedzialny za obliczenia związane z prognozowaniem emerytur
- * 
+ *
  * Zawiera logikę biznesową do:
  * - Szacowania przyszłych emerytur
  * - Obliczania składek emerytalnych
  * - Waloryzacji środków
  * - Analizy wpływu zwolnień lekarskich
- * 
+ *
  * Wszystkie parametry są konfigurowalne przez config/pension.php
  * i mogą być nadpisane przez zmienne środowiskowe (.env)
  */
@@ -121,7 +121,7 @@ class PensionCalculationService
 
     /**
      * Zwraca wiek emerytalny w zależności od płci
-     * 
+     *
      * Wartości są pobierane z konfiguracji (config/pension.php)
      * i mogą być nadpisane przez zmienne środowiskowe.
      *
@@ -143,8 +143,8 @@ class PensionCalculationService
      * @return float Szacowane saldo konta
      */
     private function estimateAccountBalance(
-        float $currentSalary, 
-        int $yearsWorked, 
+        float $currentSalary,
+        int $yearsWorked,
         string $variant = 'variant_1'
     ): float {
         if ($yearsWorked <= 0) {
@@ -152,11 +152,11 @@ class PensionCalculationService
         }
 
         $contributionRate = (float) config('pension.calculation.contribution_rate', 0.1952);
-        
+
         // Wczytaj dane prognostyczne
-        $realWageData = $this->forecastHelper->getRealWage();
-        $cpiData = $this->forecastHelper->getCpiTotal();
-        
+        $realWageData = $this->forecastHelper->getRealWage(); // Prognoza realnego wzrostu przeciętnego wynagrodzenia
+        $cpiData = $this->forecastHelper->getCpiTotal(); // Prognoza CPI ogółem
+
         $currentYear = (int) date('Y');
         $totalBalance = 0;
 
@@ -164,7 +164,7 @@ class PensionCalculationService
         for ($i = 0; $i < $yearsWorked; $i++) {
             $yearsAgo = $yearsWorked - $i;
             $historicalYear = $currentYear - $yearsAgo;
-            
+
             // Oblicz historyczne wynagrodzenie używając danych prognostycznych
             $historicalSalary = $this->calculateHistoricalSalary(
                 $currentSalary,
@@ -173,10 +173,10 @@ class PensionCalculationService
                 $realWageData,
                 $variant
             );
-            
+
             // Roczna składka
             $yearlyContribution = $historicalSalary * $contributionRate * 12;
-            
+
             // Waloryzacja składki do dnia dzisiejszego używając CPI
             $valorizedContribution = $this->valorizeContribution(
                 $yearlyContribution,
@@ -185,7 +185,7 @@ class PensionCalculationService
                 $cpiData,
                 $variant
             );
-            
+
             $totalBalance += $valorizedContribution;
         }
 
@@ -215,7 +215,7 @@ class PensionCalculationService
 
         $salary = $currentSalary;
         $variantData = $wageData['series'][$variant]['data'] ?? [];
-        
+
         // Cofamy się w czasie, dzieląc przez wskaźnik wzrostu
         for ($year = $currentYear; $year > $targetYear; $year--) {
             $growthIndex = $this->getGrowthIndexForYear($year, $variantData);
@@ -311,7 +311,7 @@ class PensionCalculationService
         if ($lowerYear !== null && $upperYear !== null) {
             $lowerValue = (float) $data[(string) $lowerYear];
             $upperValue = (float) $data[(string) $upperYear];
-            
+
             // Interpolacja liniowa
             $ratio = ($year - $lowerYear) / ($upperYear - $lowerYear);
             return $lowerValue + ($upperValue - $lowerValue) * $ratio;
@@ -343,33 +343,33 @@ class PensionCalculationService
      * @return float Suma przyszłych składek
      */
     private function calculateFutureContributions(
-        float $currentSalary, 
-        int $years, 
+        float $currentSalary,
+        int $years,
         string $variant = 'variant_1'
     ): float {
         $contributionRate = (float) config('pension.calculation.contribution_rate', 0.1952);
-        
+
         // Wczytaj dane prognostyczne
         $realWageData = $this->forecastHelper->getRealWage();
         $variantData = $realWageData['series'][$variant]['data'] ?? [];
-        
+
         $currentYear = (int) date('Y');
         $totalContributions = 0;
         $salary = $currentSalary;
 
         for ($i = 1; $i <= $years; $i++) {
             $futureYear = $currentYear + $i;
-            
+
             // Pobierz wskaźnik wzrostu dla przyszłego roku
             $growthIndex = $this->getGrowthIndexForYear($futureYear, $variantData);
             $growthRate = ($growthIndex - 100) / 100;
-            
+
             // Prognozowane wynagrodzenie
             $salary = $salary * (1 + $growthRate);
-            
+
             // Roczna składka
             $yearlyContribution = $salary * $contributionRate * 12;
-            
+
             $totalContributions += $yearlyContribution;
         }
 
@@ -388,7 +388,7 @@ class PensionCalculationService
             "pension.calculation.life_expectancy.{$gender}",
             $gender === 'female' ? 25 : 20
         );
-            
+
         return $yearsLifeExpectancy * 12;
     }
 
@@ -414,7 +414,7 @@ class PensionCalculationService
         $realWage = $this->forecastHelper->getRealWage();
 
         $currentYear = (int) date('Y');
-        
+
         // 1. Oblicz przyszłe wynagrodzenie w roku emerytury
         $futureGrossSalary = $this->calculateFutureSalary(
             $currentSalary,
@@ -650,7 +650,7 @@ class PensionCalculationService
 
         for ($i = 0; $i < 10; $i++) {
             $year = $retirementYear + $i;
-            
+
             // Waloryzacja emerytury (zakładamy, że emerytura rośnie z CPI)
             if ($i > 0) {
                 $cpiIndex = $this->getGrowthIndexForYear($year, $variantData);
@@ -707,7 +707,7 @@ class PensionCalculationService
         $workStartAge = (int) config('pension.calculation.default_work_start_age', 25);
         $workingDaysPerYear = (int) config('pension.calculation.working_days_per_year', 250);
         $sickLeaveContributionLoss = (float) config('pension.calculation.sick_leave_contribution_loss', 0.8);
-        
+
         // Średnia liczba dni zwolnienia rocznie
         $sickDaysPerYear = (int) config(
             "pension.calculation.sick_days_per_year.{$gender}",
@@ -717,19 +717,19 @@ class PensionCalculationService
         // Całkowity staż pracy (dotychczasowy + przyszły)
         $yearsWorked = max(0, $currentAge - $workStartAge);
         $totalYearsWorked = $yearsWorked + $yearsToRetirement;
-        
+
         // Łączna liczba dni zwolnienia
         $totalSickDays = $sickDaysPerYear * $totalYearsWorked;
-        
+
         // Łączna liczba dni roboczych
         $totalWorkingDays = $workingDaysPerYear * $totalYearsWorked;
-        
+
         // Procent utraty składek
         $contributionLossPercentage = ($totalSickDays / $totalWorkingDays) * 100;
-        
+
         // Efektywna strata
         $effectiveLoss = $contributionLossPercentage * $sickLeaveContributionLoss;
-        
+
         // Obniżenie miesięcznej emerytury
         $pensionReduction = $monthlyPension * ($effectiveLoss / 100);
 

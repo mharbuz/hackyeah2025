@@ -640,24 +640,74 @@ const resetForm = () => {
                 <!-- Główny wynik -->
                 <Card class="shadow-2xl border-none overflow-hidden bg-gradient-to-br from-[rgb(0,153,63)] via-[rgb(0,65,110)] to-[rgb(63,132,210)] text-white relative">
                     <div class="absolute inset-0 bg-grid-white/5"></div>
-                    <CardContent class="relative p-8 md:p-12 text-center">
-                        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span class="text-sm font-bold">Twoja prognoza</span>
+                    <CardContent class="relative p-8 md:p-12">
+                        <div class="flex justify-center mb-6">
+                            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span class="text-sm font-bold">Twoja prognoza emerytury</span>
+                            </div>
                         </div>
-                        <h2 class="text-xl md:text-2xl font-bold mb-3 opacity-90">Prognozowana miesięczna emerytura</h2>
-                        <div class="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg">
-                            {{ formatCurrency(simulationResult.monthly_pension) }}
+
+                        <!-- Dwie karty z kwotami -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <!-- Wysokość rzeczywista (nominalna) -->
+                            <div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-white/30 hover:border-white/50 transition-all duration-300">
+                                <div class="flex items-center justify-center gap-2 mb-3">
+                                    <svg class="w-6 h-6 text-white/90" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                    </svg>
+                                    <h3 class="text-lg font-bold text-white/90">Wysokość rzeczywista</h3>
+                                </div>
+                                <div class="text-4xl md:text-5xl font-bold text-center mb-2 drop-shadow-lg">
+                                    {{ formatCurrency(simulationResult.monthly_pension) }}
+                                </div>
+                                <p class="text-center text-white/80 text-sm leading-relaxed">
+                                    Kwota nominalna w {{ formData.retirement_year }} roku
+                                </p>
+                            </div>
+
+                            <!-- Wysokość urealniona (siła nabywcza) -->
+                            <div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 border-2 border-[rgb(255,179,79)] hover:border-[rgb(255,179,79)]/80 transition-all duration-300">
+                                <div class="flex items-center justify-center gap-2 mb-3">
+                                    <svg class="w-6 h-6 text-[rgb(255,179,79)]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <h3 class="text-lg font-bold text-[rgb(255,179,79)]">Wysokość urealniona</h3>
+                                </div>
+                                <div class="text-4xl md:text-5xl font-bold text-center mb-2 drop-shadow-lg">
+                                    {{ simulationResult.economic_context ? formatCurrency(simulationResult.economic_context.purchasing_power_today) : '—' }}
+                                </div>
+                                <p class="text-center text-white/80 text-sm leading-relaxed">
+                                    Wartość w dzisiejszych cenach ({{ new Date().getFullYear() }} r.)
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-center gap-3 text-lg md:text-xl opacity-90">
+
+                        <!-- Informacja o czasie do emerytury -->
+                        <div class="flex items-center justify-center gap-3 text-lg md:text-xl opacity-90 bg-white/10 rounded-xl py-4 px-6 backdrop-blur-sm">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
                             <span>
                                 Za {{ simulationResult.years_to_retirement }} {{ simulationResult.years_to_retirement === 1 ? 'rok' : (simulationResult.years_to_retirement < 5 ? 'lata' : 'lat') }}
                             </span>
+                        </div>
+
+                        <!-- Wyjaśnienie różnicy -->
+                        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                            <div class="flex items-start gap-3">
+                                <svg class="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-white/90 leading-relaxed">
+                                    <strong>Wysokość rzeczywista</strong> to kwota, którą otrzymasz w przyszłości. 
+                                    <strong>Wysokość urealniona</strong> pokazuje, ile ta emerytura będzie warta w dzisiejszych cenach, 
+                                    uwzględniając inflację i zmiany siły nabywczej pieniądza w okresie {{ simulationResult.years_to_retirement }} lat.
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -709,7 +759,7 @@ const resetForm = () => {
                 </div>
 
                 <!-- Kontekst ekonomiczny -->
-                <div v-if="simulationResult.economic_context" class="grid md:grid-cols-3 gap-6">
+                <div v-if="simulationResult.economic_context" class="grid md:grid-cols-2 gap-6">
                     <!-- Współczynnik zastąpienia -->
                     <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-[rgb(63,132,210)]/10 to-white backdrop-blur-sm">
                         <CardHeader class="pb-3">
@@ -728,29 +778,6 @@ const resetForm = () => {
                             </div>
                             <p class="text-sm text-gray-600 leading-relaxed">
                                 Stosunek emerytury do ostatniego wynagrodzenia
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Siła nabywcza -->
-                    <Card class="shadow-xl border-none hover:shadow-2xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-[rgb(255,179,79)]/10 to-white backdrop-blur-sm">
-                        <CardHeader class="pb-3">
-                            <CardTitle class="text-[rgb(0,65,110)] text-base flex items-center gap-2">
-                                <div class="w-8 h-8 bg-gradient-to-br from-[rgb(255,179,79)] to-[rgb(255,179,79)]/80 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span>Siła nabywcza dzisiaj</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-3xl font-bold text-[rgb(255,179,79)] mb-2">
-                                {{ formatCurrency(simulationResult.economic_context.purchasing_power_today) }}
-                            </div>
-                            <p class="text-sm text-gray-600 leading-relaxed">
-                                Wartość Twojej emerytury w dzisiejszych cenach
                             </p>
                         </CardContent>
                     </Card>
