@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PensionFactController;
+use App\Http\Controllers\TestController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -13,6 +14,14 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/api/pension-fact/random', [PensionFactController::class, 'random'])->name('pension-fact.random');
+
+// Test routes
+Route::prefix('test')->group(function () {
+    Route::get('/', [TestController::class, 'index'])->name('test.index');
+    Route::get('/debug', [TestController::class, 'debug'])->name('test.debug');
+    Route::get('/{id}', [TestController::class, 'show'])->name('test.show');
+    Route::post('/', [TestController::class, 'store'])->name('test.store');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
