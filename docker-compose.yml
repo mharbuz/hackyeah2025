@@ -7,12 +7,10 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
       - ./storage:/var/www/html/storage
       - ./database:/var/www/html/database
-      - node_modules:/var/www/html/node_modules
     ports:
-      - "8000:80"
+      - "80:80"
     environment:
       - APP_ENV=${APP_ENV:-local}
       - APP_DEBUG=${APP_DEBUG:-true}

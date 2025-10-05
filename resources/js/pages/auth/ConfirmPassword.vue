@@ -4,9 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { store } from '@/routes/password/confirm';
-import { Form, Head } from '@inertiajs/vue3';
+import { useForm, Head } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+
+const form = useForm({
+    password: '',
+});
+
+const submit = () => {
+    form.post(route('password.confirm'), {
+        onFinish: () => {
+            form.password = '';
+        },
+    });
+};
 </script>
 
 <template>
@@ -16,11 +27,7 @@ import { LoaderCircle } from 'lucide-vue-next';
     >
         <Head title="Confirm password" />
 
-        <Form
-            v-bind="store.form()"
-            reset-on-success
-            v-slot="{ errors, processing }"
-        >
+        <form @submit.prevent="submit" class="space-y-6">
             <div class="space-y-6">
                 <div class="grid gap-2">
                     <Label htmlFor="password">Password</Label>
@@ -28,29 +35,31 @@ import { LoaderCircle } from 'lucide-vue-next';
                         id="password"
                         type="password"
                         name="password"
+                        v-model="form.password"
                         class="mt-1 block w-full"
                         required
                         autocomplete="current-password"
                         autofocus
                     />
 
-                    <InputError :message="errors.password" />
+                    <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="flex items-center">
                     <Button
+                        type="submit"
                         class="w-full"
-                        :disabled="processing"
+                        :disabled="form.processing"
                         data-test="confirm-password-button"
                     >
                         <LoaderCircle
-                            v-if="processing"
+                            v-if="form.processing"
                             class="h-4 w-4 animate-spin"
                         />
                         Confirm Password
                     </Button>
                 </div>
             </div>
-        </Form>
+        </form>
     </AuthLayout>
 </template>

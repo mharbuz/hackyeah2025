@@ -2,7 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, watch, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
-import { home } from '@/routes';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

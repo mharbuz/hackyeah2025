@@ -20,7 +20,8 @@ export default defineConfig({
             },
         }),
         tailwindcss(),
-        wayfinder(),
+        // Wyłącz wayfinder dla budowania produkcyjnego w Docker
+        ...(process.env.NODE_ENV !== 'production' ? [wayfinder()] : []),
     ],
     server: {
         host: process.env.VITE_HOST || '0.0.0.0',

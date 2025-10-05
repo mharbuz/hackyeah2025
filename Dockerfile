@@ -7,12 +7,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instaluj zależności Node.js
-RUN npm ci
+RUN npm install
 
 # Kopiuj pliki źródłowe
 COPY . .
 
 # Buduj aplikację Vue
+ENV NODE_ENV=production
 RUN npm run build
 
 
@@ -79,6 +80,7 @@ COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 COPY docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Konfiguracja Supervisor
+RUN mkdir -p /var/log/supervisor
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Ustaw uprawnienia dla bazy SQLite

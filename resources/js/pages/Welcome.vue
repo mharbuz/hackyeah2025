@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { dashboard, login, register } from '@/routes';
-import pensionSimulation from '@/routes/pension-simulation';
+
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
