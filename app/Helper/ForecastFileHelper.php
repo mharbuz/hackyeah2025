@@ -30,6 +30,9 @@ class ForecastFileHelper
     // Wskaźnik realnego wzrostu PKB (indeks, %)
     const REAL_GDP_FILE_PATH = 'app/private/data/real_gdp_index.json';
 
+    // Rozkład emerytur w Polsce
+    const PENSION_DISTRIBUTION_FILE_PATH = 'app/private/data/pension_distribution.json';
+
     /**
      * Zwraca informacje o prognozie stopy bezrobocia
      * @return array
@@ -82,6 +85,35 @@ class ForecastFileHelper
     public function getRealGdp(): array
     {
         return $this->getArrayDataFromJsonFilePath(self::REAL_GDP_FILE_PATH);
+    }
+
+    /**
+     * Zwraca dane o rozkładzie emerytur w Polsce
+     * @return array
+     */
+    public function getPensionDistribution(): array
+    {
+        return $this->getArrayDataFromJsonFilePath(self::PENSION_DISTRIBUTION_FILE_PATH);
+    }
+
+    /**
+     * Zwraca dane o rozkładzie emerytur dla wersji desktop (26 grup)
+     * @return array
+     */
+    public function getPensionDistributionDesktop(): array
+    {
+        $data = $this->getPensionDistribution();
+        return $data['desktop'] ?? [];
+    }
+
+    /**
+     * Zwraca dane o rozkładzie emerytur dla wersji mobile (8 grup)
+     * @return array
+     */
+    public function getPensionDistributionMobile(): array
+    {
+        $data = $this->getPensionDistribution();
+        return $data['mobile'] ?? [];
     }
 
     /**

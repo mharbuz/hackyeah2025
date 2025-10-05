@@ -1,0 +1,245 @@
+{
+    "desktop": [
+        {
+            "name": "do 500",
+            "amount": 500,
+            "percentage": 0.4,
+            "color": "rgb(240, 94, 94)",
+            "description": "Najniższe emerytury - osoby z bardzo krótkim stażem pracy lub minimalnymi składkami."
+        },
+        {
+            "name": "500-700",
+            "amount": 700,
+            "percentage": 0.3,
+            "color": "rgb(240, 94, 94)",
+            "description": "Bardzo niskie emerytury poniżej minimum socjalnego."
+        },
+        {
+            "name": "700-900",
+            "amount": 900,
+            "percentage": 0.7,
+            "color": "rgb(240, 94, 94)",
+            "description": "Niskie emerytury poniżej minimum socjalnego."
+        },
+        {
+            "name": "900-1000",
+            "amount": 1000,
+            "percentage": 0.5,
+            "color": "rgb(240, 94, 94)",
+            "description": "Emerytury zbliżone do minimum socjalnego."
+        },
+        {
+            "name": "1000-1200",
+            "amount": 1200,
+            "percentage": 1.2,
+            "color": "rgb(190, 195, 206)",
+            "description": "Emerytury na poziomie minimum socjalnego."
+        },
+        {
+            "name": "1200-1400",
+            "amount": 1400,
+            "percentage": 1.3,
+            "color": "rgb(190, 195, 206)",
+            "description": "Emerytury nieco powyżej minimum socjalnego."
+        },
+        {
+            "name": "1400-1600",
+            "amount": 1600,
+            "percentage": 1.6,
+            "color": "rgb(190, 195, 206)",
+            "description": "Emerytury poniżej emerytury minimalnej."
+        },
+        {
+            "name": "1600-1800",
+            "amount": 1800,
+            "percentage": 1.2,
+            "color": "rgb(190, 195, 206)",
+            "description": "Emerytury na poziomie minimalnej emerytury."
+        },
+        {
+            "name": "1800-2000",
+            "amount": 2000,
+            "percentage": 3.0,
+            "color": "rgb(63, 132, 210)",
+            "description": "Emerytury nieznacznie powyżej minimalnej."
+        },
+        {
+            "name": "2000-2200",
+            "amount": 2200,
+            "percentage": 2.6,
+            "color": "rgb(63, 132, 210)",
+            "description": "Niskie emerytury - krótki staż lub niskie składki."
+        },
+        {
+            "name": "2200-2400",
+            "amount": 2400,
+            "percentage": 5.2,
+            "color": "rgb(63, 132, 210)",
+            "description": "Emerytury poniżej średniej krajowej."
+        },
+        {
+            "name": "2400-2600",
+            "amount": 2600,
+            "percentage": 4.7,
+            "color": "rgb(63, 132, 210)",
+            "description": "Emerytury zbliżone do średniej krajowej."
+        },
+        {
+            "name": "2600-2800",
+            "amount": 2800,
+            "percentage": 5.1,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury na poziomie zbliżonym do średniej."
+        },
+        {
+            "name": "2800-3000",
+            "amount": 3000,
+            "percentage": 5.3,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury wokół średniej krajowej."
+        },
+        {
+            "name": "3000-3200",
+            "amount": 3200,
+            "percentage": 5.2,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury na poziomie średniej krajowej."
+        },
+        {
+            "name": "3200-3400",
+            "amount": 3400,
+            "percentage": 5.0,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury nieznacznie powyżej średniej."
+        },
+        {
+            "name": "3400-3600",
+            "amount": 3600,
+            "percentage": 4.7,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury powyżej średniej krajowej."
+        },
+        {
+            "name": "3600-3800",
+            "amount": 3800,
+            "percentage": 4.4,
+            "color": "rgb(0, 153, 63)",
+            "description": "Dobre emerytury - długi staż i średnie zarobki."
+        },
+        {
+            "name": "3800-4000",
+            "amount": 4000,
+            "percentage": 4.1,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury wyraźnie powyżej średniej."
+        },
+        {
+            "name": "4000-4500",
+            "amount": 4500,
+            "percentage": 9.0,
+            "color": "rgb(63, 132, 210)",
+            "description": "Wysokie emerytury - długi staż i dobre zarobki."
+        },
+        {
+            "name": "4500-5000",
+            "amount": 5000,
+            "percentage": 7.3,
+            "color": "rgb(63, 132, 210)",
+            "description": "Bardzo dobre emerytury - specjaliści i kadra."
+        },
+        {
+            "name": "5000-5500",
+            "amount": 5500,
+            "percentage": 5.8,
+            "color": "rgb(63, 132, 210)",
+            "description": "Wysokie emerytury - długi staż i wysokie składki."
+        },
+        {
+            "name": "5500-6000",
+            "amount": 6000,
+            "percentage": 4.7,
+            "color": "rgb(255, 179, 79)",
+            "description": "Bardzo wysokie emerytury - kadra menedżerska."
+        },
+        {
+            "name": "6000-6500",
+            "amount": 6500,
+            "percentage": 3.7,
+            "color": "rgb(255, 179, 79)",
+            "description": "Najwyższe emerytury - wysokie stanowiska."
+        },
+        {
+            "name": "6500-7000",
+            "amount": 7000,
+            "percentage": 2.9,
+            "color": "rgb(255, 179, 79)",
+            "description": "Emerytury dla osób z najwyższymi zarobkami."
+        },
+        {
+            "name": "7000+",
+            "amount": 8000,
+            "percentage": 9.8,
+            "color": "rgb(255, 179, 79)",
+            "description": "Najwyższe emerytury - powyżej 7000 zł."
+        }
+    ],
+    "mobile": [
+        {
+            "name": "do 1000",
+            "amount": 1000,
+            "percentage": 1.9,
+            "color": "rgb(240, 94, 94)",
+            "description": "Najniższe emerytury poniżej minimum socjalnego."
+        },
+        {
+            "name": "1000-1800",
+            "amount": 1800,
+            "percentage": 5.3,
+            "color": "rgb(190, 195, 206)",
+            "description": "Niskie emerytury do poziomu minimalnej emerytury."
+        },
+        {
+            "name": "1800-2600",
+            "amount": 2600,
+            "percentage": 15.5,
+            "color": "rgb(63, 132, 210)",
+            "description": "Emerytury poniżej średniej krajowej."
+        },
+        {
+            "name": "2600-3400",
+            "amount": 3400,
+            "percentage": 20.6,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury wokół średniej krajowej."
+        },
+        {
+            "name": "3400-4000",
+            "amount": 4000,
+            "percentage": 13.2,
+            "color": "rgb(0, 153, 63)",
+            "description": "Emerytury powyżej średniej."
+        },
+        {
+            "name": "4000-5000",
+            "amount": 5000,
+            "percentage": 16.3,
+            "color": "rgb(63, 132, 210)",
+            "description": "Wysokie emerytury."
+        },
+        {
+            "name": "5000-6000",
+            "amount": 6000,
+            "percentage": 10.5,
+            "color": "rgb(63, 132, 210)",
+            "description": "Bardzo wysokie emerytury."
+        },
+        {
+            "name": "6000+",
+            "amount": 7000,
+            "percentage": 16.6,
+            "color": "rgb(255, 179, 79)",
+            "description": "Najwyższe emerytury."
+        }
+    ]
+}
+
